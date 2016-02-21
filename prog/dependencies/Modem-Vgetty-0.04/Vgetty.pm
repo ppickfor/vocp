@@ -133,8 +133,7 @@ sub chat {
 # Initial chat
 sub init {
 	my $self = shift;
-#	$self->chat ('HELLO SHELL', 'HELLO VOICE PROGRAM', 'READY');
-	$self->chat ('HELLO SHELL', 'HELLO VOICE PROGRAM');
+	$self->chat ('HELLO SHELL', 'HELLO VOICE PROGRAM', 'READY');
 
         return $self;
 }

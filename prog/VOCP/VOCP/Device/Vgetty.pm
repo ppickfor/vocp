@@ -117,7 +117,6 @@ sub init {
 	my $device = $params->{'device'} || $self->{'device'} || 'DIALUP_LINE';
 	if ($device) {
 		$self->{'vgetty'}->device($device);
-		$self->{'vgetty'}->waitfor($Vgetty{'READY'});
 	}
 		
 	
