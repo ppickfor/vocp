@@ -1,0 +1,215 @@
+###################################################
+###                                             ###
+###                                             ###
+###  Upgrading VOCP                             ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Up to now, upgrading VOCP has been a simple matter of running install_vocp.pl and selecting option #2.  With the release of the 0.9 branch, many things have changed - in terms of architecture, dependencies and config file formats - that complicate upgrading slightly.  But, no worries mates, it's simple and all explained below.
+
+- Upgrades from <= 0.9.2
+   - New file locations
+
+
+- Upgrades from <= 0.9.0 VOCP
+    - New requirements
+      - auto install
+      - manual install
+    - New configuration
+    
+- Upgrades from 0.9.3 or greater
+
+###################################################
+###          Upgrading from 0.9.2               ###
+###################################################
+
+If you already have a 0.9.X version of VOCP installed, upgrading is (almost) as simple as running ./install_vocp.pl and selecting option 2.
+If you've got a version < 0.9.x, see below.
+
+The only thing you must watch out for is that we've finally made the move from
+our mgetty-dependent installation dir (/etc/mgetty+sendfax/vocp).
+
+Config files are now in: /etc/vocp/
+Everything else is in: /usr/local/vocp/
+
+So, after the upgrade:
+
+1)
+# mv /etc/mgetty+sendfax/vocp/boxes.conf* /etc/vocp/
+# diff /etc/vocp/vocp.conf /etc/mgetty+sendfax/vocp/vocp.conf
+
+Check the diff with the newer version of vocp.conf - there are some new
+options and params in there that should be set.
+
+When you've merged the new stuff from /etc/vocp/vocp.conf into your old
+/etc/mgetty+sendfax/vocp/vocp.conf,
+
+# mv /etc/mgetty+sendfax/vocp/vocp.conf /etc/vocp/vocp.conf
+
+
+2)
+Edit the vgetty voice.conf file and set the call_program path to
+/usr/local/vocp/bin/vocp.pl
+
+3) Get rid of the old /etc/mgetty+sendfax/vocp/ directory when done to avoid
+confusion later
+
+
+###################################################
+###          Upgrading from Pre 0.9             ###
+###################################################
+
+If you have a current installation of VOCP, with a version prior to 0.9.0, you will need to make a few things to ensure a smooth transition.
+Start by simply running install_vocp.pl as root and selecting option 2.  If all goes well, you can skip down to the "New Configuration" sub section.
+
+
+==============================
+===    New Requirements    ===
+==============================
+
+A number of new modules are now used by VOCP, in keeping with the philosophy of reuse (and to make sure other folks get the pleasure of debugging VOCP functionality, if only indirectly ;) ).
+
+===> Automatic installation of modules <===
+
+When you use the included vocp_install.pl script, you will be asked if you wish to have these modules installed automatically.  Choose 'y' to proceed (or simply hit <ENTER>).  The script will then use CPAN to install the modules autonomously.
+
+If you've never used CPAN, this will probably involve some extra pestering from the CPAN shell (questions about your location, mirrors to use, etc.).  It may even feel like installing a new version of Perl (which can be /really/ annoying).
+
+
+You will need to have the XFree86 header files (installed with the XFree86 source or the XFree86-devel-X.X.X rpm) to install the Tk and Tk::JPEG modules (see below).  You will need a working and configured sound card to use the xVOCP message retrieval GUI.  You need a modem that supports CID to use Caller-ID functions.
+
+A number of Perl modules are now used by VOCP.  Some are absolute requirements while others are optional and only needed for certain parts of VOCP.  You can either install the modules manually, using "# perl -MCPAN -e 'install Module::Name'", or you may have them installed automatically through the install script.  The modules are:
+
+ REQUIRED:
+  
+  Modem::Vgetty
+  XML::Mini
+  
+ OPTIONAL:
+  Module				Used By
+  Audio::DSP			xVOCP GUI
+  Tk					CallCenter, xVOCP, VOCPhax GUIs
+  Tk::JPEG				CallCenter, xVOCP, VOCPhax GUIs
+  Crypt::CBC			VOCPweb
+  Crypt::Blowfish		VOCPweb
+  MIME::Parser			email2vm (Email to VoiceMail converter)
+
+
+Also, if you are installing the Tk or Tk::JPEG module, you need to be logged in as root and have X running in order to allow the Tk and Tk::JPEG tests to succeed.  In addition, to install Perl Tk, you may need to install the XFree86 headers (XFree86-devel-4.X.X.rpm if you use RPMs) in order to make the X11/Xlib.h file available to Tk.
+
+
+
+===> Manual installation of modules <===
+
+Fear not, if anything goes wrong you can either try try again or do it manually.  The modules you will need are listed above.
+
+Audio::DSP is also required but I was having lots of trouble with hissing and pops from Audio::DSP.  I sent a patch to the author but never got a response, so in the mean time, the patched version is included and will be installed by default.
+
+You can install these modules using CPAN.  Here's how you would install the Modem::Vgetty module:
+
+# perl -MCPAN -e 'install Modem::Vgetty'
+
+and so on for Tk, Tk::JPEG etc.
+
+
+
+If you've installed all the required modules, you can enter 'n' when vocp_install.pl asks if you wish to install the dependencies but saying 'y' won't hurt as the installer will skip modules that are already installed.
+
+==============================
+===    New Configuration   ===
+==============================
+
+After you run vocp_install.pl and have all your required third party modules in place (see above), you are ready to configure your system.  
+
+Since you are upgrading, you already have vocp.conf and boxes.conf files present in the /etc/vocp/ directory.  These will NOT be overwritten.
+
+  However, VOCP does have some new options in the vocp.conf and a whole new format in boxes.conf (see the box-config-file.txt file if you are interested).  The new example files will be copied to /etc/vocp/ with a .new extension, so you can compare the original vocp.conf with the vocp.conf.new to see what's changed.
+
+===> vocp.conf <===
+
+
+Edit vocp.conf*, modify vocp.conf.new such that it contains your site specific info then:
+
+# mv /etc/vocp/vocp.conf /etc/vocp/vocp.conf.bak
+# mv /etc/vocp/vocp.conf.new /etc/vocp/vocp.conf
+
+
+===> boxes.conf <===
+
+If you like, you can recreate your boxes.conf file in the new box format manually (see the box-config-file.txt for details) but the recommend methods are slightly easier.
+
+
+- convert_boxconf.pl
+
+You can use the /usr/local/vocp/bin/convert_boxconf.pl script to convert you old config to the new format.  As root:
+
+# /usr/local/vocp/bin/convert_boxconf.pl /etc/vocp/boxes.conf
+
+Simply enter a new file name when prompted, e.g. /home/user/newboxes.conf
+
+The files
+
+ /home/user/newboxes.conf
+ /home/user/newboxes.conf.shadow
+ 
+will be created.  After verifying that they look right (all the config except passwords will be in newboxes.conf - passwords are found in the .shadow file), as root:
+
+# mv /home/user/newboxes.conf /etc/vocp/boxes.conf
+# mv /home/user/newboxes.conf.shadow /etc/vocp/boxes.conf.shadow
+
+# chown root:root  /etc/vocp/boxes.conf
+# chown root:vocp  /etc/vocp/boxes.conf.shadow
+# chmod 640 /etc/vocp/boxes.conf.shadow
+
+- boxconf.pl
+
+Instead of using convert_boxconf.pl, you can also use the new boxconf GUI (see doc/boxconf.txt for details).  Launch VOCP boxconf:
+
+# /usr/local/vocp/bin/boxconf.pl
+
+And immediately save the configuration.  Make sure you enter a new name for the boxes.conf file, so you can compare the program's output with your original configuration.  Passwords will be omitted from the new .conf file (you will find the in the resulting .conf.shadow file).
+
+Assuming you save the configuration as /home/user/newboxes.conf, you will need to:
+
+# mv /home/user/newboxes.conf /etc/vocp/boxes.conf
+# mv /home/user/newboxes.conf.shadow /etc/vocp/boxes.conf.shadow
+
+# chown root:root  /etc/vocp/boxes.conf
+# chown root:vocp  /etc/vocp/boxes.conf.shadow
+# chmod 640 /etc/vocp/boxes.conf.shadow
+
+
+
+
+
+###################################################
+###          Upgrading 0.9.x or later           ###
+###################################################
+
+There isn't much you need to do (for the time being) if you're upgrading from 0.9.x.  Run install_vocp.pl as root, select 2 for upgrades and follow the prompts.
+
+
+After installation, check the differences between your old customized /etc/vocp/vocp.conf and the new /etc/vocp/vocp.conf.new file (do a 'diff -b vocp.conf vocp.conf.new') to see if anything has changed or been added.
+
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF

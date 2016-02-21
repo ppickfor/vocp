@@ -1,0 +1,276 @@
+###################################################
+###                                             ###
+###  VOCP and Vgetty                            ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+VOCP is a program that needs to "talk" to your voice modem. In order to do so, you need to have vgetty installed. Vgetty comes with mgetty+sendfax/vgetty, Gert Doering's fax-enabled getty replacement with Klaus Weidner's and Marc Eberhard's voice processing extensions.
+
+
+Before you install vgetty, make sure you know your voice modem is installed and operational (perhaps by checking the doc/modems.txt file).
+
+
+- Installation
+	- install
+	- test
+	- hack
+- Configuration
+
+
+
+###################################################
+###               Installation                  ###
+###################################################
+
+===> Install <===
+
+Vgetty may already be installed on your machine - I think mgetty+sendfax is pretty standard now with Linux distributions and it includes vgetty and the pvftools we'll be using. If it is installed, you need to make sure that it works with your modem (see below)
+
+The mgetty+sendfax source code (vgetty included) may be found at http://www.leo.org/~doering/mgetty/. It is also distributed in RPM format at sites like Redhat and Mandrake. Just look for a recent version (I'm using thsource for 1.1.30) of mgetty+sendfax and vgetty should be included.
+
+Also, if you are unsure of your modem's compatibility, you really should get the source code and compile it - this will help a lot if your modem works with m/vgetty but is not correctly recognized (see below).
+
+The documentation included with mgetty is pretty straightforward - read it.  You may compile and install the m/vgetty source manually but if you are unsure of your modem's compatibility, follow these instructions.
+
+
+- Download the 1.1.30 source code from http://www.leo.org/~doering/mgetty/.
+
+
+
+- Open a console and change into the VOCP distribution directory, in the prog/dependencies/mgetty-patch/
+$ cd /path/to/vocp-X.X.X/prog/dependencies/mgetty-patch
+
+
+
+- Become the root user
+$ su
+
+
+
+- Remove installed RPMs/DEBs
+
+If you have a stock RPM or DEB install of m/vgetty, remove it.  For example, on a system that uses RPMs you would do:
+
+# rpm -qa | grep mgetty
+mgetty-1.1.26-6
+mgetty-voice-1.1.26-6
+mgetty-sendfax-1.1.26-6
+
+then remove the packages using 
+
+# rpm -e mgetty-voice-1.1.26-6 mgetty-sendfax-1.1.26-6 mgetty-1.1.26-6
+
+
+
+- Run the install_patched_vgetty.pl program.  This program will unpack, patch, compile and install mgetty/vgetty:
+
+# ./install_patched_vgetty.pl
+
+The program will ask for the location of the mgetty source .tar.gz file, patch it to include my 'force_detect' option, compile using the default policy values and install mgetty, sendfax and vgetty.
+
+- Configure
+
+Edit the mgetty.config and voice.conf files.  These will be found in /etc/mgetty+sendfax or /usr/local/etc/mgetty+sendfax or something similar.
+
+For mgetty.config, the file is well documented and the defaults are usually ok - just ensure that the contents are sane for your setup.
+
+
+Set up the voice.conf (copy it from the voice.conf-dist in the mgetty-X.X.X/voice source directory if you can't find it) as per the instructions, I've included some extra tips here. The most important thing is to 
+
+
+- set 'voice_devices' to the correct ttyS (my modem uses ttyS1, which I think is COM2 to you windows folks ;) ) 
+
+- set 'voice_shell' to the location of your Perl executable (eg /usr/bin/perl)
+
+- set the 'call_program' to VOCP (/usr/local/vocp/bin/vocp.pl)
+
+
+When vgetty is installed, you need to make sure there is a line in /etc/inittab that looks like
+
+     SX:345:respawn:/usr/sbin/vgetty ttySX
+
+replacing the X's by the /dev/ttyS[0-3] on which your modem is installed.  You now need to get init to re-read the config file, do so by running:
+
+# kill -HUP 1
+
+as root (do NOT forget the -HUP!).
+
+Doing `ps waux | grep [v]getty` should display something like:
+ 
+root     17250  0.0  0.3  1656  752 ?        S    Dec28   0:00 /usr/local/sbin/vgetty ttyS1
+
+Good.  Have a look at the /var/log/vgetty.ttySX file (replacing X by the appropriate number).  It should show vgetty initializing and testing the modem and contain a line like 
+
+12/28 19:18:08 yS1  US Robotics detected
+
+If the modem isn't recognized or if it is recognized as some type but gives lots of error messages, you can try to run the ./vgetty-test.pl script.  Change into the source directory produced when you ran install_patched_vgetty.pl - it should be at
+
+# cd /path/to/vocp-X.X.X/prog/dependencies/mgetty-patch/mgetty-1.1.30/voice/contrib/Pat_Deegan
+
+Still as root, run the test script.  Vgetty-test.pl will ask a few questions and then try to play a sound file through the modem using every possible modem setting and compression level.  You will be asked whether you wish to play the file through the handset or speaker - choose something appropriate.
+
+The file will be played multiple times, each time using a different 'force_detect' in the voice.conf file.  If you hear nothing or just a garbled squeaking sound, answer 'n' and try the next modem/compression.  
+
+When you do find that you could hear the little voice, take note of the modem type and compression method - these will be needed later to configure VOCP.
+
+If all tests fail, your modem may not be supported.  See the modems.txt document distributed with VOCP.  If that doesn't help either, join the mgetty mailing list and ask the experts directly, hack yourself some support or get a supported modem.
+
+
+===> Test <===
+
+Once it is installed, you need to test it. Use the pvf tools to convert a wav file (or whatever, but if you use wav, try to get a mono file sampled at 8000 Hz) to pvf format (portable voice format, I think) and then from that resulting file, create and rmd file (Raw Modem Data, I believe) that you can play through your modem.
+
+The sequence goes something like:
+     wavtopvf file.wav file.pvf
+     pvftormd [OPTIONS] file.pvf file.rmd
+
+The OPTIONS depend on the type of modem you've got, so you'll probably need to do some experimenting to get it right. IMPORTANT: make a note of the options used with pvftormd for the VOCP installation. Do a
+     pvftormd -L
+to see the available choices. For my (flashed GVC modem, with a Cirrus chip), I use
+     pvftormd MT_2834 4 file.pvf file.rmd
+
+
+Once you have created an rmd file, try it out. First we'll try to hear the file. Use:
+
+rmdtopvf file.rmd | pvfspeed -s 8000 | pvftobasic > /dev/audio
+
+which should play the file in your speakers (if you get "/dev/audio: Cannot allocate memory", see the FAQ at http://VOCPsystem.com). Now we try to play it through the modem. You probably need to be root to execute this:
+
+vm play -s -v /path/to/file.rmd
+
+which asks vm to play the file to your modem's internal speaker (you could also try -t instead of -s to play the file through the phone, just make sure you actually have a phone hooked into your modem's phone extension jack - NOT the line jack)
+
+If you're lucky and you're modem is compatible you will hear the file played with that deep, rich sound that emanates from modem speakers. If you don't hear anything it's either that
+
+      - your modem cannot digest the data
+      - vgetty does not recognize your modem
+
+Find out which is the case by going through the logs (which you can probably find in /var/log/vm.log and /var/log/vgetty.ttySX).
+
+If it seems like all is ok with your modem initialization but that it barfs when trying to play the file, then your life is good: just use a different set of options with pvftormd and try until you hit one that works (IMPORTANT: make a note of the options used with pvftormd for the VOCP installation). When you do, configure vgetty.
+
+If instead vgetty just stops trying at some point, saying stuff like "no voice modem found" then you've got compatibility issues: take the easy way out (if you're plenty'o'cash) and get a modem the documentation says is supported. Or go the harder (but so much more rewarding) way - hack and recompile.
+
+===> Hack <===
+
+This section is reserved for those unlucky enough to have a modem that seems unsupported by vgetty and who are willing to get their hands dirty in a little source code. Don't worry, it's not that hard - just a little tedious.
+
+NOTE NOTE NOTE:  You really should use the 'force_detect' patch method described in the install section above instead of modifying the source code - it's much easier and it has exactly the same effect.  The info below is for special cases where for some reason the patch won't work...
+
+
+Vgetty gets an ID on your modem in a rather simple way: it basically just looks at what the modem responds when you say 'ATI'. So the first step is to figure out what your own modem says. Minicom to the rescue! Use minicom (or any program that allows you to talk to you modem directly) to get the response to ATI.
+
+Do:
+minicom -s (as root)
+  Configure the Serial Port to /dev/ttySX (where X is the port number)
+  Exit the menu
+  After the modem is initialized, type 'ATI' (without the quotes) then <ENTER>
+  Take note of what comes out (usually a number, e.g. '1.09')
+  For minicom newbies, leave minicom by pressing 'CTRL+a' simultaneously, then releasing both, then 'z
+and finally 'x'
+
+Now that we have the mysterious number or string it's time to do some magic. Find the mgetty source code. We need the stuff in the voice/libvoice directory, something like /usr/src/RPM/SOURCES/mgetty-1.X.XX/voice/libvoice if you installed a source RPM.
+
+Use your favorite editor to modify the detect.c file (make a backup first!). You will find the definition of a structure, depending on the version, it goes something like:
+
+static const struct modem_type_struct modem_database[] =
+  {
+  {ati, "1.04", NULL, &Cirrus_Logic},
+  {ati, "144", NULL, &UMC},
+  {ati, "144 VOICE", NULL, &Rockwell},
+  {ati, "14400", NULL, &Rockwell},
+  {ati, "1443", NULL, &Dolphin},
+  {ati, "1445", NULL, &US_Robotics},
+  {ati, "1496", NULL, &ZyXEL_1496},
+
+[...]
+
+or
+
+static const struct modem_type_struct modem_database[] =
+     {
+     {"1.04", &Cirrus_Logic},
+     {"144", &UMC},
+     {"144 VOICE", &Rockwell},
+     {"14400", &Rockwell},
+     {"1443", &Dolphin},
+     {"1445", &US_Robotics},
+
+[...]
+
+(the exact structure depends on the version you get) and it is a list of ati commands, their expected output and information on how to treat the modem. For your voice modem to be recognized, the number or string you got from your minicom session needs to be in here. Check the struct to see if it is there. If it is, modify that line, if not just add a line somewhere.
+
+To get my modem working I added:
+{ati, "1.0", NULL, &Multitech_2834ZDXv},
+(you would simply add {"1.0", &Multitech_2834ZDXv} if you found a struct of the second type in the source) to the struct, because my modem says '1.0' when I say 'ATI'. If you have no clue what to put in the last field, take a wild guess by looking at the other lines. I tried &Cirrus_Logic first, didn't work so I continued until I found that &Multitech_2834ZDXv works for me.
+
+So you add the line, save the file and recompile/reinstall. Try the 'vm play...' command until you stop seeing errors in the logs. If the modem starts complaining about the file type, you're in! Now all that's left is to find which options to feed to pvftormd to get the file to play. It's important you do this and take note of the options, as they will be needed during your installation of VOCP. When you've got vgetty working, configure it.
+
+Of course, I am not an mgetty/vgetty expert: I have written everything I know on the subject, above. If you play with the source code and get your (incompatible) modem working, it may do so erratically - for all I know it may just explode ;)
+
+If nothing works out, you'll have to get a supported modem, hack vgetty more deeply or find another way.
+
+If you do hack vgetty so that it works with your modem, please send me (or preferably the vgetty maintainers) all the specs of your modem (maybe including it's output for ATI and ATI[0-9]) and the changes you made to vgetty.
+
+
+###################################################
+###                Configuration                ###
+###################################################
+
+
+Now that you have vgetty up and recognizing your modem, we need to configure it so it will use VOCP as the program which deals with incoming calls. There are only two or three lines to modify.
+
+As root, backup and edit the voice.conf file (probably in /etc/mgetty+sendfax/). Find the line that starts with
+     voice_devices
+and set it so that it points to your modem:
+     voice_devices ttySX
+replacing X with the appropriate number (remember, ttyS0 is COM1, 1 is COM2 etc). If vgetty was already working, you can just leave it as is.
+
+Find the line with:
+     voice_shell
+and set it to:
+     voice_shell /usr/bin/perl
+or wherever your perl executable is installed.
+
+
+Now find the line with:
+     call_program
+and change it to:
+     call_program /usr/local/vocp/bin/vocp.pl
+
+
+You may also want to tweak:
+     rings, rec_max_len, rec_silence_len, maybe some others.
+
+
+Finally, if you've applied the VOCP patch to mgetty, you can use the new 'force_detect' option in the voice.conf file.  This will forgo vgetty's normal autodetection and force detection as a particular modem - this may or may not work with your modem, obviously. Add a line like:
+
+port PORT
+force_detect MODEMTYPE
+
+changing PORT to the ttySX where your modem resides and setting MODEMTYPE to one of the types specified in the output of `pvftormd -L` (eg US_Robotics, Elsa, etc.)
+
+
+I recommend you start with the default values that are in voice.conf and change them if necessary.
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Oct 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

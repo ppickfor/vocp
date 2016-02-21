@@ -1,0 +1,22 @@
+VOCPDep version 0.01
+====================
+
+This module installs the VOCP dependencies.  Go to the toplevel VOCP directory
+and run ./install_vocp.pl as root - say 'y' to the "install dependencies?" question.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+COPYRIGHT AND LICENCE
+
+Put the correct copyright and licence information here.
+
+Copyright (C) 2002 Patrick Deegan, Psychogenic.com
+All rights reserved
+

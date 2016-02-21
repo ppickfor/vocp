@@ -1,0 +1,884 @@
+diff -Naur mgetty-1.1.30/voice/contrib/Pat_Deegan/README mgetty-1.1.31/voice/contrib/Pat_Deegan/README
+--- mgetty-1.1.30/voice/contrib/Pat_Deegan/README	1969-12-31 19:00:00.000000000 -0500
++++ mgetty-1.1.31/voice/contrib/Pat_Deegan/README	2002-12-26 23:40:00.000000000 -0500
+@@ -0,0 +1,31 @@
++vgetty-test.pl - script to test vgetty modem compatibility using the new force_detect voice.conf parameter.
++
++
++USE:
++
++$ cd /path/to/vgetty-test
++$ su
++# ./vgetty-test.pl
++
++OR
++
++vgetty-test.pl MODEMTYPE [MODEMTYPE2 ...]
++to test only a few specific modem types.
++
++eg:
++
++# ./vgetty-test.pl US_Robotics Elsa 
++
++Available modem types are those listed by `pvftormd -L`
++
++
++The vgetty-test.pl script uses the new force_detect voice.conf option to test a modem on a given port by sequentially forcing detection as each of the pvftormd supported modem types and attempting to play an RMD file encoded with each available compression method.
++
++This will aid in cases where the modem is not automatically detected by vgetty but is nonetheless supported by one of the existing modem type implementation (this has happened to me with both a Hayes Accura (supported as Lucent) and a GVC (Cirrus Logic MD-56xx chip, supported as a Multitech).
++
++It's a good idea to tail the output of vm.log as you run this program in order to see how the modem is reacting (tail -f /var/log/vm.log).
++
++
++Pat Deegan
++http://www.psychogenic.com
++Dec 26 2002
+diff -Naur mgetty-1.1.30/voice/contrib/Pat_Deegan/vgetty-test.pl mgetty-1.1.31/voice/contrib/Pat_Deegan/vgetty-test.pl
+--- mgetty-1.1.30/voice/contrib/Pat_Deegan/vgetty-test.pl	1969-12-31 19:00:00.000000000 -0500
++++ mgetty-1.1.31/voice/contrib/Pat_Deegan/vgetty-test.pl	2002-12-26 23:40:00.000000000 -0500
+@@ -0,0 +1,326 @@
++#!/usr/bin/perl
++
++use strict;
++
++=head1 vgetty-test
++
++=head2 NAME
++
++vgetty-test.pl - script to test vgetty modem compatibility
++
++=head2 SYNOPSIS
++
++$ cd /path/to/vgetty-test
++$ su
++# ./vgetty-test.pl
++
++OR
++
++vgetty-test.pl MODEMTYPE [MODEMTYPE2 ...]
++to test only a few specific modem types.
++
++eg:
++
++# ./vgetty-test.pl US_Robotics Elsa 
++
++
++
++=head2 DESCRIPTION
++
++The vgetty-test.pl script uses the new force_detect voice.conf option to test a modem on a given port
++by sequentially forcing detection as each of the pvftormd supported modem types and attempting to play
++an RMD file encoded with each available compression method.
++
++This will aid in cases where the modem is not automatically detected by vgetty but is nonetheless
++supported by one of the existing modem type implementation (this has happened to me with both a Hayes
++Accura (supported as Lucent) and a GVC (Cirrus Logic MD-56xx chip, supported as a Multitech).
++
++It's a good idea to tail the output of vm.log as you run this program in order to see how the modem
++is reacting (tail -f /var/log/vm.log)
++
++
++=head1 AUTHOR
++
++    vgetty-test.pl
++    Copyright (C) 2002 Patrick Deegan, Psychogenic.com
++    All rights reserved.
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++
++    You can reach P Deegan through the contact section on http://www.psychogenic.com
++
++=cut
++
++
++use vars qw{
++		$VoiceConf
++		$PvfDir
++		$Pwd
++		$TestPvf
++		$ModemDevice
++		$Cp
++		$VmCommand
++		$VmOutput
++		$RmdFile
++	};
++
++$Cp = '/bin/cp';
++$PvfDir = '/usr/local/bin';
++$VmCommand = "$PvfDir/vm";
++$VmOutput = '2';
++$Pwd = `pwd`;
++chomp($Pwd);
++$TestPvf = "$Pwd/test.pvf";
++$RmdFile = "$Pwd/test.rmd";
++$VoiceConf = "/usr/local/etc/mgetty+sendfax/voice.conf";
++$ModemDevice = 'ttyS1';
++
++
++$SIG{TERM} = \&restoreVoiceConf;
++$SIG{STOP} = \&restoreVoiceConf;
++
++unless ($> == 0 || $< == 0)
++{
++	error("$0 must be run as root.");
++}
++
++unless (-e $TestPvf && -r $TestPvf)
++{
++	error("Can't find '$TestPvf' - please cd into the vgetty-test.pl directory to run");
++}
++
++
++unless (-x "$PvfDir/pvftormd")
++{
++	$PvfDir = '/usr/bin';
++	unless (-x "$PvfDir/pvftormd")
++	{
++		$PvfDir = '/bin';
++		unless (-x "$PvfDir/pvftormd")
++		{
++			my $pvftormd;
++			do {
++				print "Can't find the pvftormd executable\n";
++				print "Please enter the full path to pvftormd :";
++				$pvftormd = <STDIN>;
++				chomp ($pvftormd);
++			} while (! (-x $pvftormd));
++			
++			unless ($pvftormd =~ m|^(.+)/pvftormd|)
++			{
++				error("Invalid path to pvftormd ($pvftormd) - Aborting.");
++			}
++			$PvfDir = $1;
++			
++		}
++	}
++}
++
++
++do {
++	print "Enter full path to vgetty voice.conf file [$VoiceConf]:";
++	option(\$VoiceConf);
++} while (! -r $VoiceConf);
++
++
++do {
++	print "Enter modem device (eg ttyS0 for '/dev/ttyS0') [$ModemDevice]:";
++	option(\$ModemDevice);
++} while (! -e "/dev/$ModemDevice");
++
++
++if (-x "$PvfDir/vm")
++{
++	$VmCommand = "$PvfDir/vm";
++} else {
++	do {
++		print "Enter full path to the vm command [$VmCommand]:";
++		option(\$VmCommand);
++	} while (! -x $VmCommand);
++}
++
++
++
++do {
++	print "Select output for vm command.  Possible values are:\n";
++
++	print qq|  1: No Device
++  2:  Dialup Line
++  3:  Ext. Microphone
++  4:  Int. Microphone
++  5:  Ext. Speaker
++  6:  Int. Speaker
++  7:  Local Handset
++  8:  Dialup Line and Ext. Speaker
++  9:  Dialup Line and Int. Speaker
++  10: Dialup Line and Local Handset
++  11: Dialup Line, Ext. Mic. and Ext. Speaker
++  12: Dialup Line, Int. Mic. and Int. Speaker\n|;
++	print "Enter selection [$VmOutput]:";
++	option(\$VmOutput);
++} while ( ! ($VmOutput =~ m|^\d+$| && $VmOutput <= 12 && $VmOutput >= 1));
++
++
++
++
++
++
++
++unless (-e "$VoiceConf.bak")
++{
++	print "Making a backup of voice.conf to $VoiceConf.bak\n";
++	system("$Cp $VoiceConf $VoiceConf.bak");
++}
++
++my $VoiceConfContents;
++if (! open(VCONF, "<$VoiceConf"))
++{
++	error("Could not open $VoiceConf for read: $!");
++} else {
++	{
++		local $/; # localize record sep
++		undef $/;
++		# Gobble entire file contents
++		$VoiceConfContents = <VCONF>;
++	}
++	close (VCONF);
++}
++
++
++
++my @PvfToRmdOutput = `$PvfDir/pvftormd -L 2>&1`;
++my %PossibleSettings;
++
++foreach my $line (@PvfToRmdOutput)
++{
++	chomp($line);
++
++	unless ($line =~ m|^\s*-\s*(\S+)\s+((\d(,\s*)?){1,4})|)
++	{
++		print "Skipping '$line'\n";
++		next;
++	}
++	
++	my $type = $1;
++	my $settingList = $2;
++	
++	print "Found $type $2\n";
++	
++	my @settings = split(/,\s+/, $settingList);
++	if ($PossibleSettings{$type})
++	{
++		push @{$PossibleSettings{$type}}, @settings;
++	} else {
++	
++		$PossibleSettings{$type} = \@settings;
++	}
++	
++}
++
++my @found = keys (%PossibleSettings);
++unless (scalar @found)
++{
++	error("Could not determine any valid settings for pvftormd. Aborting");
++}
++
++my @testTypes;
++if (scalar @ARGV)
++{
++	@testTypes = @ARGV;
++} else {
++	@testTypes = sort keys %PossibleSettings;
++}
++
++foreach my $type (@testTypes)
++{
++	print "========== $type ==========\n";
++	if (! open(VOICECONF, ">$VoiceConf"))
++	{
++		error("Could not open $VoiceConf for write: $! - Aborting");
++	}
++	print VOICECONF $VoiceConfContents;
++	print VOICECONF "\n\nport $ModemDevice\nforce_detect $type\n\n";
++	close(VOICECONF);
++	
++	my $done = 'n';
++	foreach my $setting (@{$PossibleSettings{$type}})
++	{
++		
++		print "===> $setting  <===\n";
++		
++		unlink "$RmdFile";
++		system("$PvfDir/pvftormd $type $setting $TestPvf $RmdFile");
++		unless (-e $RmdFile)
++		{
++			system("$PvfDir/pvfspeed -s 7200 $TestPvf | $PvfDir/pvftormd $type $setting > $RmdFile");
++			unless (-e $RmdFile)
++			{
++				print STDERR "Seems I could not create the $RmdFile file for $type $setting - skipping.\n";
++				next;
++			}
++		}
++		print "Running vm play for $type $setting - hit ^C (Ctrl-C) once to abort\n";
++		
++		system("$VmCommand play -d $VmOutput $RmdFile");
++		
++		print "Could you correctly hear the test sound file? [$done]:";
++		option(\$done);
++		if ($done =~ m|^\s*[yY]|)
++		{
++			print "\n\nUse:\n\nport $ModemDevice\nforce_detect $type\n\nin the voice.conf file and encode your ";
++			print "sound files using 'pvftormd $type $setting pvffile.pvf output.rmd'\n";
++			restoreVoiceConf();
++			exit(0);
++		}
++	}
++}
++
++restoreVoiceConf();
++		
++		
++		
++sub restoreVoiceConf {
++	
++	if ($VoiceConfContents)
++	{
++		print "Restoring original voice.conf\n";
++		if (open(VOICECONF, ">$VoiceConf"))
++		{
++			print VOICECONF $VoiceConfContents;
++			close (VOICECONF);
++		}
++	}
++}
++
++
++sub error {
++	my $err = shift;
++	
++	print STDERR "$err\n";
++	exit(1);
++}
++
++
++sub option {
++	my $r_option = shift || die "Called option without an option!\n";
++	
++	my $input = <STDIN>;
++	chomp ($input);
++	
++	$$r_option = $input if ($input);
++
++
++}
++	
+diff -Naur mgetty-1.1.30/voice/include/default.h mgetty-1.1.31/voice/include/default.h
+--- mgetty-1.1.30/voice/include/default.h	2002-12-15 14:44:18.000000000 -0500
++++ mgetty-1.1.31/voice/include/default.h	2002-12-26 23:41:43.000000000 -0500
+@@ -508,3 +508,5 @@
+  */
+ 
+ CONF(voice_devices, STRING "", CT_STRING)
++
++CONF(force_detect, STRING "", CT_STRING)
+diff -Naur mgetty-1.1.30/voice/include/version.h mgetty-1.1.31/voice/include/version.h
+--- mgetty-1.1.30/voice/include/version.h	2001-12-22 17:52:29.000000000 -0500
++++ mgetty-1.1.31/voice/include/version.h	2002-12-26 23:41:43.000000000 -0500
+@@ -1 +1 @@
+-char *vgetty_version = "experimental test release 0.9.32 / 24Dec01";
++char *vgetty_version = "experimental test release 0.9.33 / 26Dec02";
+diff -Naur mgetty-1.1.30/voice/libvoice/detect.c mgetty-1.1.31/voice/libvoice/detect.c
+--- mgetty-1.1.30/voice/libvoice/detect.c	2002-12-12 01:44:38.000000000 -0500
++++ mgetty-1.1.31/voice/libvoice/detect.c	2002-12-26 23:43:17.000000000 -0500
+@@ -30,6 +30,13 @@
+    voice_modem_struct *modem_type;
+ } pnp_partial_matches_t;
+ 
++typedef struct {
++	const char * identifier;
++	voice_modem_struct *modem_type;
++} force_detect_struct;
++
++	
++
+ static const struct pnp_modem_type_struct pnp_modem_database[] =
+      {
+      {"SUP", NULL, &Supra, "SupraFAX modem (generic)" },
+@@ -144,17 +151,46 @@
+        { NULL, NULL }
+      };
+ 
++
++
++
++static const force_detect_struct forced_detection_map[] = 
++     {
++     	{"supra", &Supra},
++	{"zyxel_2864", &ZyXEL_2864},
++	{"zyxel_1496", &ZyXEL_1496},
++	{"zyxel_omni56k", &ZyXEL_Omni56K},
++	{"us_robotics", &US_Robotics},
++	{"elsa", &Elsa},
++	{"v253modem", &V253modem},
++	{"cirrus_logic", &Cirrus_Logic},
++	{"umc", &UMC},
++	{"rockwell", &Rockwell},
++	{"dolphin", &Dolphin},
++	{"mt_2834", &Multitech_2834ZDXv},
++	{"lucent", &Lucent},
++	{"digi", &Digi_RAS},
++	{"isdn4linux", &ISDN4Linux},
++	{"multitech_5600", &Multitech_5600ZDXv},
++	{"mt_5634", &Multitech_5634ZPX},
++	{"mt_5634_isa", &Multitech_5634ZPX_ISA},
++	{"dr_neuhaus", &Dr_Neuhaus},
++	{NULL, NULL},
++};
++
++
++
+ int voice_detect_modemtype(void)
+      {
+      char buffer[VOICE_BUF_LEN];
+      char *cmnd;
+-
++    
+      lprintf(L_MESG, "detecting voice modem type");
+ 
+      /*
+       * Do we have to probe for a voice modem or was it preset?
+       */
+-
++   
+      if (voice_modem != &no_modem)
+           {
+           lprintf(L_NOISE, "voice modem type was set directly");
+@@ -233,192 +269,218 @@
+           {
+              lprintf(L_NOISE, "V253 forced");
+              voice_modem = &V253modem;
+-          }
+-
+-          /* Some modems have no meaningful output except in ATI9, but
+-           * they do not respect the standard. For them we will use
+-           * another table of partial matches. We do not want to slow
+-           * even more by adding ATI9s to the global table.
+-           */
+-
+-          i = 0;
+-          while ((voice_modem == &no_modem) && (pnp_partial_matches[i].s)) {
+-             if (!strncmp(pnp_partial_matches[i].s,
+-                          buffer,
+-                          strlen(pnp_partial_matches[i].s))) {
+-                voice_modem = pnp_partial_matches[i].modem_type;
+-             }
+-             i++;
+-          }
+-
+-          if (voice_modem != &no_modem) {
+-             lprintf(L_MESG, "%s detected", voice_modem->name);
+-             lprintf(L_NOISE,
+-                     "voice modem type was set by ATI9 partial match");
+-             return(OK);
+-          }
+-
+-          /* Else, standard ATI9 */
+-
+-	  s = strchr(buffer, '(');
+-	  if ( s && s[1] != '\0' )
+-	  {
+-	      if ( s[1] == '\1' )	/* binary format "(^Ax" */
+-		  s+=3;
+-	      else			/* ASCII format: "(1.0[0]" */
+-	          do { s++; } while( isdigit(*s) || *s == '.' );
+-
+-	      lprintf(L_NOISE, "PNP String: '%s'", s);
+-	      i = 0;
+-	      while (voice_modem == &no_modem &&
+-		     pnp_modem_database[i].pnpid)
+-	      {
+-		   lprintf(L_JUNK, "checking pnpid %s / modelid %s",
+-			       pnp_modem_database[i].pnpid,
+-			       pnp_modem_database[i].modelid ? 
+-				   pnp_modem_database[i].modelid : "<none>");
+-
+-		   if (strncmp(pnp_modem_database[i].pnpid, s, 3) == 0)
++          } 
++	  
++	  /* Override automatic modem detection if user has specified the
++	  ** force_detect option in voice.conf
++	  */
++	  if (voice_modem == &no_modem && strcmp("", cvd.force_detect.d.p) != 0)
++		{
++	  	   i = 0;
++		   while ((voice_modem == &no_modem) && (forced_detection_map[i].identifier)) {
++			if (strncasecmp(cvd.force_detect.d.p, forced_detection_map[i].identifier, 
++					strlen(forced_detection_map[i].identifier)) == 0) {
++				voice_modem = forced_detection_map[i].modem_type;
++			}
++			i++;
++		   }
++		
++		   if (voice_modem == &no_modem)
+ 		   {
+-		       if (pnp_modem_database[i].modelid == NULL ||
+-			   strncmp(pnp_modem_database[i].modelid, s+3, 4) == 0)
+-		       {
+-			   lprintf( L_MESG, "PNP: found modem: %s",
+-					pnp_modem_database[i].verbose );
+-			   voice_modem = pnp_modem_database[i].modem_type;
+-			   break;
++			lprintf(L_WARN, "Attempted to force_detect modem as '%s' but no match found for identifier", cvd.force_detect.d.p);
++			exit(FAIL);
++		   } 
++		
++		}
++	  else
++	  {
++			 
++	
++	          /* Some modems have no meaningful output except in ATI9, but
++	           * they do not respect the standard. For them we will use
++	           * another table of partial matches. We do not want to slow
++	           * even more by adding ATI9s to the global table.
++	           */
++	
++	          i = 0;
++	          while ((voice_modem == &no_modem) && (pnp_partial_matches[i].s)) {
++	             if (!strncmp(pnp_partial_matches[i].s,
++	                          buffer,
++	                          strlen(pnp_partial_matches[i].s))) {
++	                voice_modem = pnp_partial_matches[i].modem_type;
++	             }
++	             i++;
++	          }
++	
++	          if (voice_modem != &no_modem) {
++	             lprintf(L_MESG, "%s detected", voice_modem->name);
++	             lprintf(L_NOISE,
++	                     "voice modem type was set by ATI9 partial match");
++	             return(OK);
++	          }
++	
++	          /* Else, standard ATI9 */
++	
++		  s = strchr(buffer, '(');
++		  if ( s && s[1] != '\0' )
++		  {
++		      if ( s[1] == '\1' )	/* binary format "(^Ax" */
++			  s+=3;
++		      else			/* ASCII format: "(1.0[0]" */
++		          do { s++; } while( isdigit(*s) || *s == '.' );
++	
++		      lprintf(L_NOISE, "PNP String: '%s'", s);
++		      i = 0;
++		      while (voice_modem == &no_modem &&
++			     pnp_modem_database[i].pnpid)
++		      {
++			   lprintf(L_JUNK, "checking pnpid %s / modelid %s",
++				       pnp_modem_database[i].pnpid,
++				       pnp_modem_database[i].modelid ? 
++					   pnp_modem_database[i].modelid : "<none>");
++	
++			   if (strncmp(pnp_modem_database[i].pnpid, s, 3) == 0)
++			   {
++			       if (pnp_modem_database[i].modelid == NULL ||
++				   strncmp(pnp_modem_database[i].modelid, s+3, 4) == 0)
++			       {
++				   lprintf( L_MESG, "PNP: found modem: %s",
++						pnp_modem_database[i].verbose );
++				   voice_modem = pnp_modem_database[i].modem_type;
++				   break;
++			       }
++			   }
++			   i++;
+ 		       }
+-		   }
+-		   i++;
+-	       }
+-	       /* eat the OK... */
+-	       voice_read(buffer);
+-	  }
+-
+-	  voice_flush(3);
+-
+-	  if (voice_modem != &no_modem)
+-	  	{
+-          	lprintf(L_NOISE, "voice modem type was set by pnp id");
+-         	 return(OK);
+-         	}
+-
+-          /* Detection using identification strings. Seems that it
+-           * is required for some very specific modem types.
+-           * -- (Rojhalat Ibrahim, roschi@ribrahim.de)
+-           * IMPLEMENTATION NOTES
+-           *    - We used to have a complicated ATI3 scheme with a table
+-           *      which was wrong (every added entry to the table would have
+-           *      consumed more lines of the modem output when a second
+-           *      line was required; would cause timeouts on modems returning
+-           *      less than 3 lines). We have simplified that.
+-           * BUGS
+-           *    - This implementation, although less likely to cause problems,
+-           *      will make detection longer (timeout) on modems returning
+-           *      something different than OK or ERROR, when they return
+-           *      less than 2 lines (case significative).
+-           */
+-	  
+-	  cmnd = (char *) ati3;
+-	  if (voice_command(cmnd, "") != OK) {
+-             lprintf(L_WARN, "modem detection failed");
+-             exit(FAIL);
+-          }
+-
+-          if (voice_read(buffer) != OK) {
+-             lprintf(L_WARN, "modem detection failed");
+-             exit(FAIL);
+-          }
+-
+-          if ((strstr(buffer, "OK") == NULL)
+-              && (strstr(buffer, "ERROR") == NULL)) {
+-             /* The non-empty string wasn't OK/ERROR, so let's ignore it and
+-              * go to the next line (that we assume exists -- else will
+-              * timeout but recover).
+-              */
+-             if (voice_read(buffer) == OK) {
+-                if (strstr(buffer, "SupraExpress 56e PRO")) {
+-                   voice_modem = &Supra56ePRO;
+-                }
+-             }
+-          }
+-          /* else the modem already returned OK/ERROR, so no need to create
+-           * a timeout.
+-           */
+-
+-          /* Flush remaining data. We can't read, might not be there,
+-           * and that would timeout, too.
+-           */
+-          voice_flush(1); /* wait until no chars and 100 ms have passed */
+-
+-          if (voice_modem != &no_modem) {
+-             lprintf(L_MESG, "%s detected", voice_modem->name);
+-             lprintf(L_NOISE, "voice modem type was set by using \
+-                              identification strings");
+-             return(OK);
+-          }
+-
+-          cmnd = (char *) ati;
+-          if (voice_command(cmnd, "") != OK) {
+-             lprintf(L_WARN, "modem detection failed");
+-             exit(FAIL);
+-          }
+-
+-          do
+-               {
+-               if (voice_read(buffer) != OK)
+-                    {
+-                    lprintf(L_WARN, "modem detection failed");
+-                    exit(FAIL);
+-                    }
+-
+-               /*
+-                * Strip off leading and trailing whitespaces and tabs
+-                */
+-
+-               s = buffer + strlen(buffer) - 1;
+-
+-               while ((s >= buffer) && isspace(*s) )
+-                    *s-- = '\0';
+-
+-               s = buffer;
+-	       while( isspace(*s) ) s++;
+-
+-               for (i = 0; ((modem_database[i].at_cmnd != NULL) &&
+-                (voice_modem == &no_modem)); i++)
+-                    {
+-
+-                    if ((strcmp(modem_database[i].at_cmnd, cmnd) == 0) &&
+-                     (strcmp(modem_database[i].at_answr, s) == 0))
+-                         {
+-
+-                         if (modem_database[i].next_cmnd != NULL)
+-                              {
+-                              voice_flush(1);
+-                              cmnd = (char *) modem_database[i].next_cmnd;
+-
+-                              if (voice_command(cmnd, "") != OK)
+-                                   {
+-                                   lprintf(L_WARN, "modem detection failed");
+-                                   exit(FAIL);
+-                                   }
+-
+-                              sprintf(buffer, "OK");
+-                              break;
+-                              }
+-                         else
+-                              voice_modem = modem_database[i].modem_type;
+-
+-                         }
+-
+-                    }
+-
+-               }
+-          while ((voice_modem == &no_modem) &&
+-           (voice_analyze(buffer, "", TRUE) != VMA_FAIL));
+-
+-          voice_flush(1);
+-          }
++		       /* eat the OK... */
++		       voice_read(buffer);
++		  }
++	
++		  voice_flush(3);
++	
++		  if (voice_modem != &no_modem)
++		  	{
++	          	lprintf(L_NOISE, "voice modem type was set by pnp id");
++	         	 return(OK);
++	         	}
++	
++	          /* Detection using identification strings. Seems that it
++	           * is required for some very specific modem types.
++	           * -- (Rojhalat Ibrahim, roschi@ribrahim.de)
++	           * IMPLEMENTATION NOTES
++	           *    - We used to have a complicated ATI3 scheme with a table
++	           *      which was wrong (every added entry to the table would have
++	           *      consumed more lines of the modem output when a second
++	           *      line was required; would cause timeouts on modems returning
++	           *      less than 3 lines). We have simplified that.
++	           * BUGS
++	           *    - This implementation, although less likely to cause problems,
++	           *      will make detection longer (timeout) on modems returning
++	           *      something different than OK or ERROR, when they return
++	           *      less than 2 lines (case significative).
++	           */
++		  
++		  cmnd = (char *) ati3;
++		  if (voice_command(cmnd, "") != OK) {
++	             lprintf(L_WARN, "modem detection failed");
++	             exit(FAIL);
++	          }
++	
++	          if (voice_read(buffer) != OK) {
++	             lprintf(L_WARN, "modem detection failed");
++	             exit(FAIL);
++	          }
++	
++	          if ((strstr(buffer, "OK") == NULL)
++	              && (strstr(buffer, "ERROR") == NULL)) {
++	             /* The non-empty string wasn't OK/ERROR, so let's ignore it and
++	              * go to the next line (that we assume exists -- else will
++	              * timeout but recover).
++	              */
++	             if (voice_read(buffer) == OK) {
++	                if (strstr(buffer, "SupraExpress 56e PRO")) {
++	                   voice_modem = &Supra56ePRO;
++	                }
++	             }
++	          }
++	          /* else the modem already returned OK/ERROR, so no need to create
++	           * a timeout.
++	           */
++	
++	          /* Flush remaining data. We can't read, might not be there,
++	           * and that would timeout, too.
++	           */
++	          voice_flush(1); /* wait until no chars and 100 ms have passed */
++	
++	          if (voice_modem != &no_modem) {
++	             lprintf(L_MESG, "%s detected", voice_modem->name);
++	             lprintf(L_NOISE, "voice modem type was set by using \
++	                              identification strings");
++	             return(OK);
++	          }
++	
++	          cmnd = (char *) ati;
++	          if (voice_command(cmnd, "") != OK) {
++	             lprintf(L_WARN, "modem detection failed");
++	             exit(FAIL);
++	          }
++	
++	          do
++	               {
++	               if (voice_read(buffer) != OK)
++	                    {
++	                    lprintf(L_WARN, "modem detection failed");
++	                    exit(FAIL);
++	                    }
++	
++	               /*
++	                * Strip off leading and trailing whitespaces and tabs
++	                */
++	
++	               s = buffer + strlen(buffer) - 1;
++	
++	               while ((s >= buffer) && isspace(*s) )
++	                    *s-- = '\0';
++	
++	               s = buffer;
++		       while( isspace(*s) ) s++;
++	
++	               for (i = 0; ((modem_database[i].at_cmnd != NULL) &&
++	                (voice_modem == &no_modem)); i++)
++	                    {
++	
++	                    if ((strcmp(modem_database[i].at_cmnd, cmnd) == 0) &&
++	                     (strcmp(modem_database[i].at_answr, s) == 0))
++	                         {
++	
++	                         if (modem_database[i].next_cmnd != NULL)
++	                              {
++	                              voice_flush(1);
++	                              cmnd = (char *) modem_database[i].next_cmnd;
++	
++	                              if (voice_command(cmnd, "") != OK)
++	                                   {
++	                                   lprintf(L_WARN, "modem detection failed");
++	                                   exit(FAIL);
++	                                   }
++	
++	                              sprintf(buffer, "OK");
++	                              break;
++	                              }
++	                         else
++	                              voice_modem = modem_database[i].modem_type;
++	
++	                         }
++	
++	                    }
++	
++	               }
++	          while ((voice_modem == &no_modem) &&
++	           (voice_analyze(buffer, "", TRUE) != VMA_FAIL));
++	
++	          voice_flush(1);
++	          }
++     }
+ 
+      if (voice_modem->init == NULL)
+           {
+diff -Naur mgetty-1.1.30/voice/voice.conf-dist mgetty-1.1.31/voice/voice.conf-dist
+--- mgetty-1.1.30/voice/voice.conf-dist	2002-12-15 14:43:49.000000000 -0500
++++ mgetty-1.1.31/voice/voice.conf-dist	2002-12-26 18:36:41.000000000 -0500
+@@ -571,6 +571,31 @@
+ port ttyS0
+ 
+ #
++#
++# If your modem isn't autodetected by vgetty or is detected as the wrong type
++# you may set force_detect to one of the supported modem types.  The detection
++# process will be skipped and the modem on the given port (ttyS0 in this case)
++# will be assumed to have been detected as specified.  Valid force_detect types
++# are currently:
++#
++# 	Digi
++#	Elsa
++#	ISDN4Linux
++#	Lucent
++#	MT_2834
++#	MT_5634
++#	Rockwell
++#	UMC
++#	US_Robotics
++#	V253modem
++#	ZyXEL_1496
++#	ZyXEL_2864
++#	ZyXEL_Omni56K
++#	Cirrus_Logic
++#
++# force_detect US_Robotics
++
++#
+ # And we want it to answer after the first ring and only in data mode.
+ # So we would define:
+ #

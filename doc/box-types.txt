@@ -1,0 +1,220 @@
+###################################################
+###                                             ###
+###  VOCP Box type descriptions                 ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Boxes boxes boxes...
+
+This document presents the various box types used by VOCP.
+
+To create, edit and manage you voice mail system configuration, launch /usr/local/vocp/bin/boxconf.pl as the root user.  When
+creating a new box, you will be asked to select the type of box from a list. Select the desired box type, click ok and fill the required fields.  See the boxconf.txt file for details on using boxconf.pl.
+
+ This document covers:
+
+- Notes for all boxes
+- none
+- command
+- exit
+- faxondemand
+- group
+- mail 
+- pager
+- receivefax
+- script
+- conclusion
+
+
+
+
+###################################################
+###                 All  Boxes                  ###
+###################################################
+
+One feature is common to all boxes - they have a number (normally,  three digits).  This number must be unique as a user can
+access any box directly by entering the box number after any prompt (by using '*NNN#', where NNN is the box number).
+
+Most boxes may have a message set.  This message is the name of the rmd file to play upon entering the box.  This filename is should be entered relative to /var/spool/voice/messages, thus if you have these two files on you hard drive:
+
+/var/spool/voice/messages/rootbox.rmd
+/var/spool/voice/messages/spanish/welcome.rmd
+
+you would enter messages rootbox.rmd and spanish/welcome.rmd, respectively.
+
+A number of box configuration parameters are common to a few types of boxes. Boxes will safely ignore parameters that are irrelevant to them (for instance, a faxondemand box will ignore the owner attribute).
+
+==> autojump <==
+Boxes with this autojump set to a valid system box number will automatically jump to that box after playing the box message. 
+
+==> branch <==
+The branch attribute specifies the list of options available to the caller in this box.This line should have the format SELECTION=DESTINATION[,SELECTION=DESTINATION...]
+For instance 0=998,1=011,2=012 will configure the box so a caller pressing 0 is directed to box 998, 1 goes to 011 and 2 leads to box 012.
+
+==> email <==
+The email attribute specifies 1 or more internet email addresses to which notifications should be sent. Notifications of pager messages or new voice mail for the box will be sent to this email address, with an the message attached if so specified in the vocp.conf file. Use a comma seperated list to send to multiple addresses (eg user1@example.com,user2@example.com).
+
+==> owner <==
+The owner attribute specifies the system username of the person who owns the box. Voice mail for the box will be owned by this user. In the case of script or command shell boxes, the executable programs will be run as this user.
+
+
+==> password <==
+The password attribute sets the password used to access the box (log in and retrieve messages, in the case of mail boxes, or log in and run programs in the case of command boxes). It may be 
+	- a sequence of digits (eg '1234')
+	- textual content (eg 'hello' entered as 42 32 53 53 63#, see the text input section in doc/command-shells.txt for details)
+	- an encrypted version of the above (you can use the /usr/local/vocp/bin/cryptpass.pl program to create these with crypt)
+
+
+
+###################################################
+###                 None  Boxes                 ###
+###################################################
+
+The 'none' box is key to user navigation.  It's name is derived from the fact that no action is taken upon entering this box, 
+except perhaps playing a message.  'none' boxes are used to implement menus and messages for callers.
+
+'none' boxes MUST at a minimum, either have a message or autojump set (they may have both).
+
+When the box is entered, the message will be played if it is set.
+
+If branches are specified (eg '1=100,2=200,0=998') single digit user input will move the caller to the appropriate box (box 100, for
+input 1 in this example).
+
+If autojump is set, the caller will jump to the box number specified after the message plays.
+
+
+Accessing these boxes may terminate the VOCP session, if the box is a dead end (no autojump, no branches).
+
+
+###################################################
+###                Command  Boxes               ###
+###################################################
+
+The 'command' boxes may be accessed by logging into the system (they are described in greater detail in the command shell section of the site
+or the command-shells.txt file).  They provide a command shell on the VOCP system, from which the logged on caller can execute selected programs and hear resulting output (be it numeric, a sequence of sound files to play or text-to-speech output).  Command shells are a powerfull feature but, as such, require some extra attention when configuring - so be sure to check out command-shells.txt.
+
+These boxes MUST have a valid system user set as the owner and a password set.
+
+
+###################################################
+###                  Exit  Boxes                ###
+###################################################
+
+
+The 'exit' boxes do just that - they exit.  They may have a message set, in which case the message will be played upon entering the box.  After message play, the system exits and the call is terminated.
+
+I use the 'exit' box to provide a 1 key hangup by creating an exit box with number 998 and adding '0=998' to the branches of the root (001) box.  That way, when VOCP answers at the same time as I do, I press '0', the system says 'goodbye' and I can continue with the call.
+
+
+Accessing these boxes will (obviously) terminate the VOCP session.
+
+
+###################################################
+###            Fax-On-Demand  Boxes             ###
+###################################################
+
+The 'faxondemand' boxes allow you to give callers access to a number of faxes of their choice.  Upon entering the box, the message is played if it is set then the modem switches to fax mode and sends the file set in the "fax to send" field.
+
+This "fax to send" must contain the full path to a file in an appropriate format (g3).
+
+Accessing these boxes will terminate the VOCP session, causing mgetty to go into fax mode and handle the remainder of the call.
+
+
+###################################################
+###                 Group  Boxes                ###
+###################################################
+
+The 'group' boxes act like mailing lists for voicemail.  'group' boxes have members (a list of comma separated box numbers, eg '100,200,500').  The members must be 'mail' type boxes or other 'group' boxes.  When a 'group' box is accessed, the message is played (if set), the caller is beeped and recording commences.  After the recording is finished, the message is delivered to all mail boxes in the group and all mail boxes in the groups contained within the group, recursively.
+
+These boxes MUST have at least 1 member.
+
+Accessing these boxes will terminate the VOCP session after the message has been recorded.
+
+
+###################################################
+###                  Mail  Boxes                ###
+###################################################
+
+The 'mail' boxes are end points in the call flow where callers may leave voicemail messages.  These boxes MUST have an owner and a password set.  Upon accessing the box, callers will hear the message (if set) and then record a message that will be delivered to the box.
+
+Accessing these boxes will terminate the VOCP session.  The box owners can call the system and log into their mail boxes, to retrieve and delete their voicemail messages.
+
+
+###################################################
+###                 Pager  Boxes                ###
+###################################################
+
+The 'pager' boxes ask users to enter a numeric message (digits) and deliver an 'email page' with the contents of the caller input to the box's email address. These boxes MUST have an email address set.
+
+Accessing these boxes will terminate the VOCP session after the caller has entered the number and pressed '#'.
+
+
+###################################################
+###              ReceiveFax  Boxes              ###
+###################################################
+
+The 'receivefax' boxes allow you to create a box that, when accessed, plays the message (if set), terminates the VOCP session and switches the modem to fax mode.  Callers may use this box to send faxes to you.  This box is not, strictly, necessary (as VOCP will intercept the
+fax tone of an incoming fax call and exit appropriately) but may be useful.
+
+Accessing these boxes will terminate the VOCP session and let mgetty handle the rest of the call, in fax mode.
+
+
+###################################################
+###                Script  Boxes                ###
+###################################################
+
+The 'script' box is akin to a command shell box in that it will (optionally) accept user input, run a local program and use that program's output to answer the user.  Depending on the type of 'return' specified during the configuration, VOCP will either
+
+- read the exit status of the program ('exit')
+
+- read the numerical output of the program ('output')
+
+- play the files specified by the program ('files', these must be compatible .rmd files)
+
+- use Text-To-Speech to synthesize a textual response ('tts', see the text-to-speech.txt file for setup info)
+
+- send the fax specified by the program's output ('sendfax', must be in a compatible 
+format - see the faxes.txt file for details and an example script)
+
+These boxes MUST have an owner set and the script they run must be either owned by the box owner or the root user.  Scripts currently run as the owner of the box, so be careful with who has control of the scripts and the box configuration.  A good technique, if you have no need to run a script as a particular user, is to have the scripts owned by root, mode 0755 and have the script boxes owned by a user like 'nobody' or some other specially created and powerless user.
+
+Script boxes are a lot like command shell selections, so take a look at the command-shells.txt file if you have any questions.
+
+If the box is a dead end (no autojump, etc. set) or has a return of 'sendfax', the call will terminate after access to the box.
+
+
+###################################################
+###                 Conclusion                  ###
+###################################################
+
+We've covered all the currently support VOCP box types.  The boxconf program should be rather intuitive but check the boxconf.txt help file and let us know if you are having difficulties.  When you've completed your configuration, save the new config file to somewhere in your home and have a peek inside.  The configuration is XML based, which isn't all that friendly but has the advantage of being rather clear.  You may want to take a look at the box-config-file.txt file to learn more about it.
+
+
+Cheers,
+Pat Deegan
+
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Nov 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+
+ 

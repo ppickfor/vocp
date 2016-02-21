@@ -1,0 +1,44 @@
+Welcome to the VOCP voice messaging system.
+
+For the latest version and complete documentation, see the official website at:
+http://www.VOCPsystem.com
+
+Also BE SURE to have a look in the doc/ directory.
+
+The VOCP system is a complete voice messaging solution, featuring voicemail boxes, email pagers and DTMF command shells.  Users can navigate the system using a touch-tone phone, leave and retrieve messages and execute programs on the host machine using the DTMF command shells.
+
+VOCP now features a graphical configuration utility, a message retrieval, call center and faxing GUIs, as well as the core VOCP voice messaging system and the VOCPweb web interface.  
+
+
+We are interested in knowing how you are using VOCP!  Drop us a line on the http://www.psychogenic.com contact page and let us know what you think!
+
+    VOCP voice messaging system.
+    Copyright (C) 2000-2003 Patrick Deegan, Psychogenic.com
+	All rights reserved.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+Address bug reports and comments to: prog AT vocpsystem.com or through the contact page on http://www.psychogenic.com
+
+When sending bug reports, please provide the version of VOCP, the version of Perl, the version of your mgetty/vgetty, and the name and version of the operating system you are using.  If the problem is even remotely modem dependent, please provide information about the affected modems as well. 
+
+
+For complete installation instructions, see the INSTALL file.
+
+
+Regards,
+Pat Deegan
+

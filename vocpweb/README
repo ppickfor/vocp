@@ -1,0 +1,11 @@
+VOCPweb - Part of the VOCP voice messaging system.
+
+The VOCP web interface, which permits users to retrieve voicemail from anywhere through a browser!
+
+The program, vocpweb.cgi, lets users view the number of messages in the box, details (date and time) for each message and allows users to download or even hear their messages with their browsers.
+
+Complete installation instructions are included in the INSTALL file.  Please note that, due the range of possible web server configurations and security issues (discussed in INSTALL), this portion of the installation is "manual" - but not really complex :)
+
+It is HIGHLY recommended that you take a good look at the SECURITY file before proceeding with the installation.
+
+Pat.

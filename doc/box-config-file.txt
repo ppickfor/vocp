@@ -1,0 +1,419 @@
+###################################################
+###                                             ###
+###  VOCP Box configuration file format         ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+This document presents the format used for the VOCP system box configuration.  The general config (vocp.conf) uses a simpler format and is self documenting.  The boxes.conf (and accompanying boxes.conf.shadow) file uses a simple XML layout.  Under normal circumstances, you should probably use the VOCP boxconf GUI to manage your configuration but this document is here to help out those who either wish to do some VOCP hacking or simply like to go about things the hard way :)
+
+
+TOC
+
+- General layout
+- Box elements
+- Command shells
+- Passwords and the shadow file
+- Short example
+- Conclusion
+
+
+
+
+###################################################
+###               General Layout                ###
+###################################################
+
+Remember that this is XML, so you need to escape things like < and & (with &lt; and &amp;) and that XML::Mini (the pure perl XML parser) is still a young product so don't be too rough on it yet ;)
+
+
+The current VOCP boxes.conf file looks something like this:
+
+<?xml version="1.0" ?>
+ <VOCPBoxConfig>
+  <boxList>
+   <box />
+   <box />
+   <box />
+  </boxList>
+ </VOCPBoxConfig>
+
+The root node is 'VOCPBoxConfig'.  Within this node, a single child, 'boxList' contains all the configured boxes.  This may seem a little convoluted, since there is only one child for VOCPBoxConfig, but this will give us a little room for future enhancements.
+
+The boxList contains just that, a list of box elements.  I've used simple tags here to represent the boxes but, in fact, each <box /> element contains a number of child nodes - exactly which ones depends on the type of box and its configuration - described below.
+
+
+
+###################################################
+###                Box elements                 ###
+###################################################
+
+All <box /> elements (the children of the 'boxList' node) will have a 'number' attribute - this is the box number within the VOCP system and it must be unique. So a minimal box element would look like this:
+
+<box number="001" />
+
+In reality, since VOCP requires that even 'none' boxes have at least a message or autojump set, you won't find any such 'unary' box tags in the config.  Instead you will see:
+
+
+<box number="001">
+  <sometag>
+    stuff
+  </sometag>
+  ...
+</box>
+
+
+Which tags are present within the box element depends on the type of box and your desired configuration.  Possible children are:
+
+ - type
+ - message
+ - owner
+ - email
+ - branch
+ - autojump
+ - members
+ - file2fax
+ - script
+ - return
+ - commandList
+
+
+Each of these elements may or may not be present.  Here is a short description and example for each.
+
+=====================
+===     type      ===
+=====================
+
+The type element may be present (else the box type is considered to be 'none') and can contain any of the supported VOCP box types (see the box-types.txt file for details).  For example:
+
+    <type>
+     pager
+    </type>
+
+describes a 'pager' type box.
+
+
+=====================
+===    message    ===
+=====================
+
+The message element contains the path to an RMD message, relative to the message dir (/var/spool/voice/messages).  For example:
+
+   <message>
+     system/pager.rmd
+   </message>
+
+
+
+=====================
+===     owner     ===
+=====================
+
+The owner element contains the box owner's username.  This username must be a valid system user.
+
+   <owner>
+     patd
+   </owner>
+
+
+
+=====================
+===     email     ===
+=====================
+
+The email element contains an email address for the box owner.  The email address must be in a format your MTA (sendmail) accepts:
+
+   <email>
+     joeblo@vocpsystem.com
+   </email>
+
+
+
+=====================
+===    branch     ===
+=====================
+
+The branch element contains the branch information from this box.  This line should be in the standard branch format:
+SELECTION=DESTINATION[,SELECTION=DESTINATION...]
+For instance
+
+   <branch>
+     0=998,1=011,2=012
+   </branch>
+
+will configure the box so a caller pressing 0 is directed to box 998, 1 goes to 011 and 2 leads to box 012.
+
+
+=====================
+===   autojump    ===
+=====================
+
+The autojump element contains the destination for an autojump from this box.  The value must be a valid system box number.
+
+  <autojump>
+    001
+  </autojump>
+
+
+
+=====================
+===   members    ===
+=====================
+
+The members element is used by group boxes.  It lists the members of the group, which must be system 'mail' boxes or other 'group' boxes.
+
+  <members>
+    001,443,512,100
+  </members>
+
+Try to avoid creating strange loops - ie having two groups have each other as members.
+
+
+
+=====================
+===   file2fax    ===
+=====================
+
+The file2fax element is used by faxondemand boxes.  Oddly enough, it sets the file to fax when the box is accessed.  This must element must contain the full path to a file in g3 format.
+
+
+    <file2fax>
+     /usr/local/vocp/faxtest.g3
+    </file2fax>
+
+
+=====================
+===     script    ===
+=====================
+
+The script element is used by script boxes.  The element must contain the full path to an executable program that will be run upon accessing the box.  This script must be owned either by the root user or the owner of the box.
+
+    <script>
+     /var/spool/voice/commands/motd.pl
+    </script>
+
+
+=====================
+===    return     ===
+=====================
+
+The return element is used by script boxes.  The element determines the type of response output by a script box after running the script listed in the above <script /> element.  Valid return types are 'exit', 'output', 'file', 'tts' and 'sendfax'.
+
+    <return>
+     tts
+    </return>
+
+###################################################
+###                Command Shells               ###
+###################################################
+
+Command shells are a powerful VOCP feature.  These boxes, only accessible by logging into the system, present the caller with a choice of programs to run, conveying information back to the caller after have executed the programs.  Exactly which selections are available within a given box is up to the VOCP administrator - see the command-shells.txt file for details.
+
+To support <box /> elements of <type /> command, we now introduce the <commandList /> element which, to date, is the only complex element contained within <box /> elements.
+
+
+=====================
+===  commandList  ===
+=====================
+
+commandList elements are found within a <box /> description and contain a list of <command /> elements, each of which contains a number of elements to describe when and how to run a given program and what type of output to return to the user.  An example will probably be much clearer than a lengthy explanation.
+
+
+    <commandList>
+    
+     <command selection="100">
+      <input>
+       text
+      </input>
+      <return>
+       output
+      </return>
+      <run>
+       ip.pl
+      </run>
+     </command>
+     
+     <command selection="200">
+      <input>
+       none
+      </input>
+      <return>
+       tts
+      </return>
+      <run>
+       motd.pl
+      </run>
+     </command>
+     
+    </commandList>
+
+
+The preceding example shows the command list for a very simple command shell.  Only two selection are available in this case, 100 and 200.  If the caller enters 200, the shell will immediately run the motd.pl program and convert the output from this program to sound using the festival Text-To-Speech engine (which must be correctly installed beforehand of course).
+
+Entering 100, the user will be prompted to enter some text input (using the DTMF keys) which will be passed on the command line when running the ip.pl script.  The numerical output from this script will be read to the caller.
+
+Notice that each <command /> element has a 'selection' attribute (the number to enter - this must be unique) and a number of children:
+
+- input  (none, raw, text)
+- run    (program to run, relative to /var/spool/voice/commands)
+- return (valid return types are 'exit', 'output', 'file', 'tts' and 'sendfax')
+
+
+
+###################################################
+###            Passwords and Shadows            ###
+###################################################
+
+You may have noticed that there are no passwords set anywhere - and yet many boxes require passwords to function.  In an attempt to move away from privileged access and setuid programs, VOCP now supports a shadow password file.  Although you may still include passwords within the boxes.conf file, the *highly* recommended strategy is to put everything except passwords in the boxes.conf file and create a mirror boxes.conf.shadow file.  This file should be owned root:vocp mode 0640.  The shadow file contains the same structure as the boxes.conf file, except that the only element present within the <box /> elements is the password element.  Here is an example:
+
+
+<?xml version="1.0" ?>
+ <VOCPBoxConfig>
+  <boxList>
+   <box number="100">
+    <password>
+     G0xO54ndCH90U
+    </password>
+   </box>
+   <box number="600">
+    <password>
+     7738
+    </password>
+   </box>
+   <box number="666">
+    <password>
+     93290
+    </password>
+   </box>
+  </boxList>
+ </VOCPBoxConfig>
+
+
+Notice:
+- only <password /> elements are present.
+- only boxes that have a password set need be listed
+- passwords may additionally be encrypted (box 100, standard crypt())
+
+
+
+
+###################################################
+###               Short Example                 ###
+###################################################
+
+
+Here is a short example configuration.  It is comprised of a root box (001), a mail box (002), a script box (003) and a command shell (004):
+
+
+<?xml version="1.0" ?>
+ <VOCPBoxConfig>
+  <boxList>
+  
+   <box number="001">
+    <message>
+     root.rmd
+    </message>
+    <owner>
+     root
+    </owner>
+    <branch>
+     1=002,2=003
+    </branch>
+   </box>
+   
+   <box number="002">
+    <type>
+     mail
+    </type>
+    <owner>
+     patd
+    </owner>
+    <email>
+     joeblo@vocpsystem.com
+    </email>
+   </box>
+   
+   <box number="003">
+    <type>
+     script
+    </type>
+    <owner>
+     patd
+    </owner>
+    <autojump>
+     001
+    </autojump>
+    <script>
+     /var/spool/voice/commands/motd.pl
+    </script>
+    <return>
+     tts
+    </return>
+   </box>
+   
+   <box number="004">
+    <type>
+     command
+    </type>
+    <owner>
+     root
+    </owner>
+    <commandList>
+     <command selection="100">
+      <input>
+       text
+      </input>
+      <return>
+       output
+      </return>
+      <run>
+       ip.pl
+      </run>
+     </command>
+     <command selection="200">
+      <input>
+       none
+      </input>
+      <return>
+       tts
+      </return>
+      <run>
+       motd.pl
+      </run>
+     </command>
+    </commandList>
+   </box>
+   
+  </boxList>
+ </VOCPBoxConfig>
+
+
+
+###################################################
+###                 Conclusion                  ###
+###################################################
+
+That pretty much covers the VOCP box config format as it currently stands.  One good way to play with it is to use the VOCP boxconf interface to generate a boxes.conf and boxes.conf.shadow file pair and take a look at how it was created.
+
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

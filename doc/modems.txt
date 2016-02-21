@@ -1,0 +1,227 @@
+###################################################
+###                                             ###
+###                                             ###
+###  VOCP Voice Modem MiniGuide                 ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+This document describes basic interaction and queries to your voice modem.  It is aimed primarily at helping you troubleshoot your modem, in cases where you've been through the vgetty.txt file and the mgetty/vgetty docs and still can't get some (or all) features of your modem working.
+
+
+- Installing the modem
+- Interacting with the modem
+   - starting minicom
+   - querying the modem
+   - quitting minicom
+- Conclusion
+
+
+
+
+###################################################
+###             Installing the modem            ###
+###################################################
+
+We will not attempt to describe everything you need to know in order to install and configure your modem - please see the Modem HOWTO at http://www.linux.org/docs/ldp/howto/Modem-HOWTO.html or one of the other related modem HOWTOs from the linux documentation project at http://www.tldp.org/
+
+
+
+###################################################
+###         Interacting with the modem          ###
+###################################################
+
+The most direct way to figure out your modem's capabilities are:
+
+- read the modem's manual
+- ask the modem
+
+If you have access to the modem's manual from your manufacturer, you may be in luck. If it is more than mere marketroid fluff and includes information about the chipset and AT command set used, you should have everything you need.  Read it, focusing on voice and/or caller id related info.
+
+If you can't find the modem docs, didn't like the modem related HOWTOs at http://www.tldp.org/ or just like getting hands on experience, it's time to whip out minicom.
+
+===> starting minicom <===
+
+If you are new to minicom, here is a little guide that should get you started.
+
+Open a console or xterm.  As root, start minicom, with the setup switch:
+
+# minicom -s
+
+In the configuration menu that appears, use the arrow keys to go down to "serial port setup", hit <ENTER>.  
+
+You can see the first line in the new screen is something like:
+
+    A -    Serial Device      : /dev/modem
+
+Hit the 'A' key to edit this field and erase the /dev/modem.  If you know which tty your modem is on, enter it now.  If you do not, start by trying /dev/ttyS0 and work your way up (ttyS1, ttyS2...).
+
+Hit the <ENTER> key to complete the edit and <ENTER> to exit this menu.  Use the arrow keys to go down to "Exit" (not "Exit from Minicom"!), press <ENTER>.
+
+You will see an "Initializing Modem" screen.  Then, if all goes well, you will see something like:
+
+AT S7=45 S0=0 L1 V1 X4 &c1 E1 Q0                                                
+OK
+
+
+
+Great, you are now online with your modem.  If you see nothing at all, get an error message or nothing happens when you type "AT<ENTER>", try again using the next ttyS[123].
+
+
+
+===> modem queries <===
+
+The AT (often called "Hayes") command set used by your modem may and will probably differ from those shown here.  Often times, if you don't have the manual handy and can't find anything relevant on the net, you can guess at variations, for instance replacing '+' characters with '#' and vice versa.
+
+
+Ask your modem a few basic questions and ponder the responses.  Some commands will ouput interesting info, all should ouput some kind of status (OK/VCON/CONNECT/other stuff when things are going well, ERROR otherwise).  Here are a few information queries that may produce interesting results:
+
+ATI
+ATI3
+ATI9
+ATI11
+AT&Vn
+
+
+Now that you've gotten to know your modem a bit better, try a few commands to determine it's capabilities and settings.
+AT+FCLASS=?
+or
+AT#CLS=?
+
+Will show the "modes" in which the modem may be set, often these are :
+
+0   - data
+1   - fax 1
+2   - fax 2
+2.0 - fax 2.0
+8   - voice
+
+You can query the current mode using:
+AT+FCLASS?
+
+And set it, for instance to voice mode, using 
+
+AT+FCLASS=8
+
+Certain commands will only function from within a specific mode, so if your trying out voice related commands be sure to do an
+
+AT+FCLASS=8
+
+before proceeding.  If you get an ERROR or the only modes supported are 0,1,2 you may not have a voice modem, but check the docs to make sure.  Now we can try to see the available voice compression modes.  These will vary between modems.  Use
+
+AT+VSM=?
+AT#VCI=?
+
+Here's the output for a Hayes accura v.92 external (Lucent Venus chipset, I think):
+
+
+AT+VSM=?
+
+128,"8-BIT LINEAR",(7200,8000,11025)
+129,"16-BIT LINEAR",(7200,8000,11025)
+130,"8-BIT ALAW",(8000)
+131,"8-BIT ULAW",(8000)
+132,"IMA ADPCM",(7200,8000,11025)
+
+OK
+
+And here's the output for my old GVC (cirrus logic CL-MD56xx chipset):
+
+AT+VSM=?
+
+0,"8-Bit Linear",8,0,(4800,7200,8000,9600,11025),(0),(0)
+1,"16-Bit Linear",16,0,(4800,7200,8000,9600,11025),(0),(0)
+2,"4-Bit ADPCM",4,0,(4800,7200,8000,9600,11025),(0),(0)
+128,"8-Bit Linear",8,0,(4800,7200,8000,9600,11025),(0),(0)
+129,"16-Bit Linear",16,0,(4800,7200,8000,9600,11025),(0),(0)
+132,"4-Bit ADPCM",4,0,(4800,7200,8000,9600,11025),(0),(0)
+140,"CL1",8,0,(4800,7200,8000,9600,11025),(0),(0)
+141,"3-Bit ADPCM",3,0,(4800,7200,8000,9600,11025),(0),(0)
+
+
+The possibilities are quite different on the two modems and so are the default settings for voice compression:
+
+Hayes:
+ at+vsm?
+ 129,"16-BIT LINEAR",8000
+
+
+GVC:
+ at+vsm?
+ 140,8000,0,0
+
+
+You should try out some other voice parameter queries, using either the "list all" (=?) or "show current" (?) suffix:
+
+AT+VLS or AT#VLS (Analog source/destination selection and DTMF/tone reporting) - try AT+VLS=? and AT#VLS=?
+
+AT+VCID or AT#CID (caller id enable) - Try AT+VCID=? or AT#CID=?
+
+
+The actual AT commands to use are, as stated above, completely modem dependent and vary (wide|wild)ly but with standards like IS 101 things seem to be getting a little better.  Here are a few voice related AT commands that you can try out.
+
+AT+VIP 		Initialize voice parameters. 
+AT+VCID 	Caller-ID. 
+AT+VDR 		Distinctive ring. 
+AT+VGT 		Speaker volume control. 
+AT+VIT 		DTE/DCE inactivity timer. 
+AT+VNH 		Automatic hang-up control. 
+AT+VLS 		Analog source/destination selection and DTMF/tone reporting. 
+AT+VTD 		Set beep tone duration timer. 
+AT+VSD 		Set silence detection timer. 
+AT+VRA 		Set ringback goes away timer. 
+AT+VRN 		Set ringback never came timer. 
+AT+VTS 		DTMF/tone generation. 
+AT+VTR 		Start full-duplex voice transmission and reception process. 
+AT+VTX 		Enter voice transmit state. 
+AT+VRX 		Enter voice receive state. 
+AT+VSM 		Voice compression method. 
+AT+VEM 		Event reporting and masking. 
+AT+VGR 		Receive gain selection. 
+AT+VPR 		Select DTE/DCE interface rate.
+AT+VGM 		Microphone gain. 
+AT+VGS 		Speaker gain.
+
+
+===> quitting minicom <===
+
+When you are done, you should exit minicom cleanly such that it resets your modem to a nice state.  To do so, hit:
+
+^A (Ctrl-A), then
+X
+
+Say yes and begone.  If you are currently running vgetty, you've probably disrupted it's operation by buggering about with the modem like this so the best thing is to restart vgetty:
+
+# killall vgetty
+
+
+###################################################
+###                Conclusion                   ###
+###################################################
+
+You should now have a clearer understanding of both your modem's operation and it's capabilities.  Note that even if you managed to elicit some sane responses for caller-id related commands, it doesn't mean your modem actually supports it - only that it's chipset does (see the doc/caller-id.txt file).
+
+On the other hand, if you managed to get your modem into voice mode (FCLASS/CLS 8), there is a good chance that you can have fun with voice and VOCP operation.  Check the INSTALL/upgrading.txt and other help files in this directory.
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+
+

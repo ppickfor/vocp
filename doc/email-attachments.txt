@@ -1,0 +1,95 @@
+###################################################
+###                                             ###
+###  VOCP Email attachments                     ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Voice mail boxes can be configured (through the email parameter) to receive email notifications of new voice mail messages.  This document describes how to configure and setup the type of sound file attachments available.
+
+- Enabling attachments
+- Configuring the encoder
+- Conclusion
+
+
+###################################################
+###            Enabling attachments            ###
+###################################################
+
+If a 'mail' type box has an email address configured, email notifications will be sent to the address when new voice mail comes in.  The email's from address and subject may be configured using the email_from_address and email_subject in the vocp.conf file.
+
+If you wish to send the voice message as attachments along with the notification, you must set
+
+email_attach_message	1
+
+in vocp.conf and set the message_in_email_format to the desired format of the attached sound file.  Available formats are 'ogg', 'mp3' and 'wav'.
+
+==> ogg <==
+
+This is probably your best choice.  It offers compression similar to mp3 but is an open format and it does not have any patent issues (it is completely royalty free).  See the Ogg Vorbis site (http://www.vorbis.com/) to download you open and free audio encoders and players.
+
+==> mp3 <==
+
+The standard but patent-encumbered format for sound files.  I personally don't recommend it.  Offers good compression
+
+==> wav <==
+
+Wave files will work pretty much anywhere but they are _huge_.  
+
+
+###################################################
+###           Configuring the encoder           ###
+###################################################
+
+If you selected wav you can skip this part (remember, they are huge).  If you've selected ogg or mp3 you will need to ensure you have an appropriate encoder installed on your system and that the relevant pvftoXXX file is properly setup.
+
+
+==> ogg <==
+
+Install an encoder.  You can get it from the ogg vorbis site (http://www.vorbis.com), install it according to their instructions.  Once that is done, find oggenc (the ogg vorbis encoder) by doing a 'which oggenc'.  It will probably be at /usr/bin/oggenc
+
+As root, edit the /usr/local/vocp/bin/pvftoogg file.  Go to the Ogg ENCODER section and set $encoder to point to your ogg vorbis encoder (oggenc).  You can also tweak the $encoderOptions to your liking.
+
+Try the program using a pvf file:
+  /usr/local/vocp/bin/pvftoogg /path/to/file.pvf > foo.ogg
+Then you can try
+  ogg123 foo.ogg
+to play the resulting file.
+
+You are done.
+
+
+==> mp3 <==
+
+Pretty much the same instructions as above, but using an mp3 encoder and editing the /usr/local/vocp/bin/pvftomp3 file.  See the MP3 encoder section within pvftomp3 and Ali's comments within.
+
+You are done.
+
+
+
+###################################################
+###                  Conclusion                 ###
+###################################################
+
+Setup up is currently rather simple but, because of this, flexibility is somewhat limited.  I'm thinking of modifying the box config so that individual boxes will be able to override certain settings (such as the type of attachment).
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF

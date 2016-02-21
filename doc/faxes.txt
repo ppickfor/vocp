@@ -1,0 +1,312 @@
+###################################################
+###                                             ###
+###  Faxing with VOCP                           ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Who needs email? Faxing is easy and phun.
+
+This document presents RECEIVING and SENDING faxes with VOCP and the VOCPhax GUI.
+
+- Requirements
+- Fax Reception
+	- Setup
+	- Using VOCPhax
+	- Manual conversions
+- Sending Faxes
+	- Setup
+	- Using VOCPhax
+	- Using fax-on-demand and script boxes
+	
+
+
+###################################################
+###                 Requirements                ###
+###################################################
+
+The requirements for faxing with VOCP actually depend on what you are looking to do.  At a minimum, you need a functional installation of  VOCP and it's required modules and might need to edit the vgetty's mgetty.conf file.  If you wish to view and send faxes using VOCPhax, you will also need Perl Tk and the Tk::JPEG module (these should have been installed along with VOCP).
+
+
+==============================
+=== Reception Requirements ===
+==============================
+
+
+After installation, your VOCP voice mail system is set up to receive faxes.  
+
+The only thing you really should set up is the permissions with which faxes are saved.  To do so, edit the mgetty.conf file (usually found in
+/etc/mgetty+sendfax/) and set the fax-owner, -group and -mode to something like:
+
+fax-owner root
+fax-group vocp
+fax-mode 0640
+
+Which will make the files legible by the root user and the vocp group. If you wish to ensure only specific users can read the incoming faxes, either
+- set the fax-mode to 0600 and the fax-owner as the user who will be responsible for retrieving faxes.
+or
+- set the fax-mode to 0640, the fax-owner to root and the fax-group to a group you've created specifically for this purpose (you can then add users to the group as required).
+
+
+==============================
+=== Sending   Requirements ===
+==============================
+
+The requirements for sending faxes depend on whether you want to send faxes using a fax-on-demand box or if you wish to send faxes manually from the VOCP host system.  See the Sending Faxes/Setup section below for details.
+
+###################################################
+###               Fax  Reception                ###
+###################################################
+
+
+When a call comes in and the familiar beep beeps of a fax are detected, VOCP will correctly stop all voice modem activity and switch to fax
+mode (by exiting with a status code that vgetty recognizes). Mgetty will take the call over, and save the incoming fax (normally to
+/var/spool/voice/incoming).
+
+You may also choose to create 'receivefax' boxes (see the box-types.txt docs for details).  When accessed these boxes may play a message to callers, then they will exit in such a way as to hand control to mgetty in fax mode. Callers should then proceed to launch their fax machines and send you the data.
+
+Faxes will be saved to multiple files, 1 file per page with a names like:
+
+fndc6dacaS1-631-772-6100.01
+fndc6dacaS1-631-772-6100.02
+...
+
+
+=====================
+=== Viewing Faxes ===
+=====================
+
+
+These files are in g3 format and may be viewed by converting them. 
+
+This can be done automatically from VOCPhax (/usr/local/vocp/bin/vocphax.pl) or you can convert them manually, to any supported
+image format.
+ 
+ 
+
+=> Using VOCPhax <=
+
+VOCPhax presents a (hopefully) friendly and intuitive graphical interface to view and send faxes.  When VOCPhax is launched, it will present a preview of all the faxes found in the default incoming fax directory (/var/spool/fax/incoming/).  These previews are miniature versions of the g3 faxes found in the inqueue.  
+
+
+You can select a particular page by left clicking it once.  Double-clicking a preview will open the view window, within which you can zoom in to see your fax up close.  You can re-order the pages by drag & dropping them, although this is only really useful in the case of the out queue.
+
+The main window's menus are:
+
+File->Open  (open a g3 fax file)
+
+File->Create (create a fax from a file in another format, such as jpeg, gif, xpm, ps, etc.).  Useful for sending.
+
+File->Delete to delete the page
+or 
+File->Export to export the fax to another format (simply choose a location and file name with an appropriate extension, like /path/to/blah.jpg).
+
+File->Send Queue  (send the files in the out queue)
+
+File->Quit (not sure what this one does... ;) )
+
+
+In Queue->preview (show thumbnails of the faxes in the in queue)
+
+In Queue->Select dir (select a directory in which to look for incoming faxes)
+
+In Queue->empty (delete all files within the queue)
+
+
+Double clicking on any of the thumbnails will open a second window in which you can view the fax page at a larger scale.  In this window you can drag the image around and zoom in or out.  Most of the options are pretty straight forward - explore and play with it, if there's something you can't figure out, let me know.
+
+
+=> Manual conversion <=
+
+You may choose to bypass VOCPhax entirely and play with your faxes manually.
+
+To convert the files, you can use a string of g32pbm and pbmtoXXX, or just change into the /var/spool/voice/incoming directory and run convert_fax.sh
+
+$ cd /var/spool/voice/incoming
+$ ls 
+
+fndc6dacaS1-631-772-6100.01
+fndc6dacaS1-631-772-6100.02
+...
+
+You can view these faxes as ppm files (converted from g3) by using /usr/local/vocp/bin/viewfax.sh or you can export the faxes to another more common format, such as jpeg, tga or xpm, using /usr/local/vocp/bin/convert_fax.sh:
+
+
+$ /usr/local/vocp/bin/view_fax.sh fndc6dacaS1-631-772-6100.01
+
+$ /usr/local/vocp/bin/convert_fax.sh fndc6dacaS1-631-772-6100 jpeg
+
+The convert_fax script will take a filename or the first part of a filename (in this case the fndc6dacaS1-631-772-6100 without the .01, .02) and convert all the messages to the requested format (jpeg here).  The valid formats are those for which a corresponding ppmtoXXX file exists.  On my system, these are:
+
+ppmtoacad      ppmtogif       ppmtojpeg      ppmtomap
+ppmtopict      ppmtopuzz      ppmtotga       ppmtoxpm
+ppmtobmp       ppmtoicr       ppmtoleaf      ppmtomitsu     
+ppmtopgm       ppmtopj        ppmtorgb3      ppmtouil       
+ppmtoyuv       ppmtoeyuv      ppmtoilbm      ppmtolj        
+ppmtompeg      ppmtopi1       ppmtopjxl      ppmtosixel     
+ppmtowinicon   ppmtopcx
+
+so the valid formats would be : gif, jpeg, map, pict, puzz, tga, etc...
+
+You will find the converted files in the /tmp directory. You could also specify a destination directory by appending a 3rd argument:
+
+$ /usr/local/vocp/bin/convert_fax.sh fndc6dacaS1-631-772-6100 jpeg /path/to/mydir
+
+
+
+
+
+
+###################################################
+###                Sending Faxes                ###
+###################################################
+
+Sending faxes happens when:
+
+==> A local user wishes to initiate a call and send a fax.
+
+==> A remote caller accesses a faxondemand box or a script box with return set to 'sendfax'
+
+
+
+======================================
+=== Local user wants to send faxes ===
+======================================
+
+
+=> Initial Setup <=
+
+Users can send faxes manually, using mgetty+sendfax's faxspool (see the man page), or through the VOCPhax interface (/usr/local/vocp/bin/vocphax.pl).  For this to function, the sys admin (yeah, that's probably you ;) ) needs to do a little work first.
+
+Start by editing/verifying the contents of the mgetty+sendfax fax-related files.
+The parts I believe are important are:
+
+/etc/mgetty+sendfax/faxheader -- The header that gets sent with faxes.  Something like this should do:
+
+      FAX  FROM:  Psychogenic 514-555-1212    TO: @T@    PAGE: @P@ OF @M@
+
+/etc/mgetty+sendfax/faxrunq.config -- the device to use (same as in voice.conf)
+
+	#  which devices to use for outgoing faxes, separated by ":" (default: no tty)
+	#  this may be overridden by the -l command line switch
+	fax-devices ttyS1
+
+
+/etc/mgetty+sendfax/sendfax.config -- the device to use (same as in voice.conf)
+
+	# which devices to use for outgoing faxes
+	fax-devices ttyS1
+
+	# which fax number to transmit to the receiving station
+	fax-id 514-555-1212
+
+
+When that is done, you need to decide who can use faxspool to send faxes (this may have security implications, I really don't know, but since the outgoing fax dir needs to be writable by anyone - sticky 777 mode, drwxrwxrwt - I can't see it making much difference).
+
+If you want users other than root to be able to send faxes, create a file called:
+
+/etc/mgetty+sendfax/fax.allow 
+
+and include all users you wish to give faxing permissions to.  Alternatively, you could create a /etc/mgetty+sendfax/fax.deny file instead, to deny certain users (all others will have faxing rights).
+
+Now users can use VOCPhax to queue faxes but they still need to be sent.  This is achieved with
+
+- faxrunq
+or
+- faxrunqd
+
+You can set up a cron job (as root) to periodically run faxrunq (say, every 15 minutes), like this:
+
+# crontab -e
+
+*/15 * * * * /usr/bin/faxrunq
+
+You may also choose to simply run the faxrunqd daemon, which will periodically check the spool for queued fax jobs and send them along.  In this case, ensure that faxrunqd is started, either by adding something like
+
+/usr/sbin/faxrunqd &
+
+to the end of your /etc/rc.d/rc.local file or use /etc/inittab to respawn the daemon like we do for vgetty.
+
+Finally, fax setup is done.  One technique I have not tried but looks mighty interesting is using your box as a fax-server, where other machines on your network can simply print to a "fax-printer" to have the faxes sent.  This involves using the efax package and is describe in the "Fax-Server Mini HOWTO":
+
+http://www.tldp.org/HOWTO/mini/Fax-Server.html
+
+
+
+=> Sending with VOCPhax <=
+
+You can use VOCPhax (/usr/local/vocp/bin/vocphax.pl) to create and send faxes.  Launch the program.  You may File->Open g3 fax files or File->Create faxes by converting existing files in other formats (png, ps, pdf, eps, tiff, jpeg, tga, xpm, gif and bmp are among the supported formats).  When this is done, click the "add to Queue" button in the VOCPhax view window.  You will notice that the VOCPhax main window now shows a preview of the out queue containing a thumbnail of your newly created fax. 
+
+Add as many pages as you wish to send.  You can reorder the pages by dragging and dropping the thumbnails to their new positions.
+
+When ready, select File->sendqueue.  A dialog will allow you to enter phone numbers you wish to send the faxes to. Enter a phone number in the text field and click add.  If you've made a mistake, select the phone number and click the remove button.  When you're satisfied, click send.
+
+That's it, the faxes should be spooled and sent the next time faxrunq(d) gets around to it.
+
+You can check the outgoing fax queue with the faxq command and delete jobs with faxrm.
+
+
+==================================
+=== Caller access to fax boxes ===
+==================================
+
+
+You can use VOCP to send faxes to remote callers in a number of ways.  The simplest method is the faxondemand boxes (see box-types.txt for details).  When accessed, these boxes will optionally play a message and proceed to send the fax as configured by the system manager.  Each faxondemand box sends a single fax, then disconnects the call.
+
+This allows you to configure a system where callers select a fax to receive, for example
+
+box 100 "Press 1 to receive a list of our products, 2 to receive some notes about
+our company, press 3 to receive our NDA" - 1=101,2=102,3=103
+
+101 faxondemand box Sends /path/to/prodlist.g3
+102 faxondemand box Sends /path/to/aboutus.g3
+103 faxondemand box Sends /path/to/nda.g3
+
+Another method, the script and command boxes, allows you to dynamically select which fax will be sent.  Script and command boxes allow you to run any program of your choosing, optionally passing in user input as a numeric or textual argument to the script.  If you set the 'return' type of these to 'sendfax', output from the script will be interpreted as a fax to send.  Thus, a program like this:
+
+#!/usr/bin/perl
+
+  my $hour = localtime(time())[2];
+
+  if ($hour < 12)
+  {
+	print "/path/to/morningfax.g3\n";
+	
+  } else {
+	print "/path/to/afternoonfax.g3\n";
+  }
+
+  exit (0);
+
+can be set as the program to run in a given script box with 'return' set to sendfax. When accessed, this box will send a fax - which fax gets sent depends on the time of day. Of course, the scripts can do anything you like before outputting the fax to send so you can be as 
+creative as you want.
+
+
+This closes our discussion of VOCP and faxing.  If you feel that anything is unclear or has been left out, don't hesitate to let us know either through the VOCP mailing list (http://www.VOCPsystem.com) or directly through the "Open source projects" selection on the http://www.psychogenic.com/ website.
+
+Happy Faxin,
+Pat Deegan
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Nov 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+
+

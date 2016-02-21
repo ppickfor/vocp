@@ -1,0 +1,1055 @@
+Revision history for Perl extension VOCP.
+
+This is a dump of the CVS logs for stuff under prog/VOCP.
+
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/MANIFEST,v
+Working file: MANIFEST
+head: 1.2
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 2;	selected revisions: 2
+description:
+----------------------------
+revision 1.2
+date: 2003/02/05 22:34:04;  author: pdeegan;  state: Exp;  lines: +14 -0
+Update to the manifest file to include extra modules.
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:33;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/Makefile,v
+Working file: Makefile
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2003/02/05 06:27:42;  author: pdeegan;  state: Exp;  lines: +26 -19
+Major changes to get_selection to support the new fixed digit boxes (as opposed to simply single digit).  Mods made to command shells to support selection listings.
+----------------------------
+revision 1.4
+date: 2003/01/27 02:00:15;  author: pdeegan;  state: Exp;  lines: +4 -4
+VOCP v0.9.2
+----------------------------
+revision 1.3
+date: 2002/12/12 07:44:02;  author: pdeegan;  state: Exp;  lines: +249 -126
+New entries for stuff that was never included in the cvs tree
+----------------------------
+revision 1.2
+date: 2002/09/19 10:41:38;  author: pdeegan;  state: dead;  lines: +0 -0
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002/09/19 10:41:13;  author: pdeegan;  state: Exp;
+New VOCP version approaching...
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/Makefile.PL,v
+Working file: Makefile.PL
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +1 -1
+Adding single digit support...
+----------------------------
+revision 1.2
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +1 -1
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:33;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP.pm,v
+Working file: VOCP.pm
+head: 1.28
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 28;	selected revisions: 28
+description:
+----------------------------
+revision 1.28
+date: 2003/02/05 22:33:35;  author: pdeegan;  state: Exp;  lines: +53 -18
+New name() and inputMode() utility functions for direct access through the VOCP obj.
+----------------------------
+revision 1.27
+date: 2003/02/05 06:27:42;  author: pdeegan;  state: Exp;  lines: +132 -57
+Major changes to get_selection to support the new fixed digit boxes (as opposed to simply single digit).  Mods made to command shells to support selection listings.
+----------------------------
+revision 1.26
+date: 2003/02/04 04:28:00;  author: pdeegan;  state: Exp;  lines: +75 -251
+Moved config file parsing out to VOCP::Config::Simple.
+Added support for the box numDigits attribute.
+Added checks for new restrictLoginFrom box attrib (CID based ACL) during logins.
+----------------------------
+revision 1.25
+date: 2003/02/03 06:14:54;  author: pdeegan;  state: Exp;  lines: +1 -1
+Have finally made the move from /etc/mgetty+sendfax/vocp to /etc/vocp
+----------------------------
+revision 1.24
+date: 2003/02/03 06:10:48;  author: pdeegan;  state: Exp;  lines: +23 -10
+minor changes to command shells and voice.conf, to enable shell listings and increase timeout
+----------------------------
+revision 1.23
+date: 2003/01/27 02:00:15;  author: pdeegan;  state: Exp;  lines: +69 -13
+VOCP v0.9.2
+----------------------------
+revision 1.22
+date: 2003/01/05 09:10:36;  author: pdeegan;  state: Exp;  lines: +1 -1
+copyright year fixes
+----------------------------
+revision 1.21
+date: 2003/01/05 09:07:49;  author: pdeegan;  state: Exp;  lines: +3 -2
+VOCP 0.9.0 release
+----------------------------
+revision 1.20
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +36 -12
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.19
+date: 2002/12/12 07:43:14;  author: pdeegan;  state: Exp;  lines: +5 -1
+Slight change to old (deprecated) box config reader to support conversions
+to new XML format.
+----------------------------
+revision 1.18
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +5 -2
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.17
+date: 2002/12/11 03:16:04;  author: pdeegan;  state: Exp;  lines: +20 -13
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.16
+date: 2002/12/02 04:15:52;  author: pdeegan;  state: Exp;  lines: +2 -1
+*** empty log message ***
+----------------------------
+revision 1.15
+date: 2002/11/26 08:34:28;  author: pdeegan;  state: Exp;  lines: +59 -8
+New shadow passwords and accompanying pwcheck/code changes
+----------------------------
+revision 1.14
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +48 -14
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.13
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: Exp;  lines: +4 -4
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+----------------------------
+revision 1.12
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +59 -14
+box metadata support, call_monitor prog
+----------------------------
+revision 1.11
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +132 -27
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.10
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +217 -226
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.9
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +75 -37
+Adding single digit support...
+----------------------------
+revision 1.8
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +140 -98
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.7
+date: 2002/10/29 09:39:39;  author: pdeegan;  state: Exp;  lines: +453 -161
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.6
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +98 -24
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.5
+date: 2002/10/27 11:45:17;  author: pdeegan;  state: Exp;  lines: +25 -4
+Added the script box and support for festival TTS engine.
+----------------------------
+revision 1.4
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +178 -804
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.3
+date: 2002/10/25 05:30:49;  author: pdeegan;  state: Exp;  lines: +94 -14
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002/09/16 08:41:42;  author: pdeegan;  state: Exp;  lines: +43 -8
+New boxconfig XML setup almost done.
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:33;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/test.pl,v
+Working file: test.pl
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:33;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Box.pm,v
+Working file: VOCP/Box.pm
+head: 1.15
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 15;	selected revisions: 15
+description:
+----------------------------
+revision 1.15
+date: 2003/02/04 04:25:01;  author: pdeegan;  state: Exp;  lines: +204 -0
+Added support for 3 new box attribs:
+numDigits for the number of expected user input digits
+restrictFrom to restrict public access based on caller id info
+restrictLoginFrom to restrict login access based on caller id info
+Both restrict* parameters are regexes, and have associated methods to check for access perms for a number.
+----------------------------
+revision 1.14
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +31 -33
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.13
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +10 -2
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.12
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: Exp;  lines: +9 -4
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+----------------------------
+revision 1.11
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +168 -4
+box metadata support, call_monitor prog
+----------------------------
+revision 1.10
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +91 -3
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.9
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +167 -3
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.8
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +6 -0
+Adding single digit support...
+----------------------------
+revision 1.7
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +228 -25
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.6
+date: 2002/10/29 09:39:39;  author: pdeegan;  state: Exp;  lines: +73 -15
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.5
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +53 -3
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.4
+date: 2002/10/27 11:45:17;  author: pdeegan;  state: Exp;  lines: +243 -1
+Added the script box and support for festival TTS engine.
+----------------------------
+revision 1.3
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +45 -14
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.2
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;  lines: +66 -3
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:36;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Attic/BoxConfig.pm,v
+Working file: VOCP/BoxConfig.pm
+head: 1.11
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 11;	selected revisions: 11
+description:
+----------------------------
+revision 1.11
+date: 2003/02/05 06:24:55;  author: pdeegan;  state: dead;  lines: +0 -0
+support for fixed digits and numDigits box attrib complete.
+----------------------------
+revision 1.10
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +1 -0
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.9
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +33 -0
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.8
+date: 2002/11/26 08:34:34;  author: pdeegan;  state: Exp;  lines: +135 -9
+New shadow passwords and accompanying pwcheck/code changes
+----------------------------
+revision 1.7
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +1 -1
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.6
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +11 -6
+Adding single digit support...
+----------------------------
+revision 1.5
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +1 -0
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.4
+date: 2002/10/29 09:39:39;  author: pdeegan;  state: Exp;  lines: +13 -15
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.3
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;  lines: +30 -2
+*** empty log message ***
+----------------------------
+revision 1.2
+date: 2002/09/16 08:41:44;  author: pdeegan;  state: Exp;  lines: +126 -11
+New boxconfig XML setup almost done.
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:36;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Attic/DeliveryAgent.pm,v
+Working file: VOCP/DeliveryAgent.pm
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.6
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: dead;  lines: +0 -0
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+----------------------------
+revision 1.5
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +22 -3
+box metadata support, call_monitor prog
+----------------------------
+revision 1.4
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +13 -2
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.3
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +129 -71
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.2
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +3 -0
+Adding single digit support...
+----------------------------
+revision 1.1
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device.pm,v
+Working file: VOCP/Device.pm
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 8;	selected revisions: 8
+description:
+----------------------------
+revision 1.8
+date: 2003/02/05 06:24:55;  author: pdeegan;  state: Exp;  lines: +2 -2
+support for fixed digits and numDigits box attrib complete.
+----------------------------
+revision 1.7
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +29 -28
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.6
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +10 -0
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.5
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +32 -1
+Adding single digit support...
+----------------------------
+revision 1.4
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +11 -1
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.3
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +15 -0
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.2
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +40 -1
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.1
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;
+*** empty log message ***
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Message.pm,v
+Working file: VOCP/Message.pm
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +34 -2
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.4
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +4 -0
+Adding single digit support...
+----------------------------
+revision 1.3
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +31 -1
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.2
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;  lines: +16 -2
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:36;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/PipeHandle.pm,v
+Working file: VOCP/PipeHandle.pm
+head: 1.7
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.7
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +9 -5
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.6
+date: 2002/12/02 04:15:55;  author: pdeegan;  state: Exp;  lines: +23 -4
+*** empty log message ***
+----------------------------
+revision 1.5
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +1 -1
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.4
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: Exp;  lines: +1 -1
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+----------------------------
+revision 1.3
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +37 -1
+box metadata support, call_monitor prog
+----------------------------
+revision 1.2
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +100 -0
+Adding single digit support...
+----------------------------
+revision 1.1
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Strings.pm,v
+Working file: VOCP/Strings.pm
+head: 1.10
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 10;	selected revisions: 10
+description:
+----------------------------
+revision 1.10
+date: 2003/02/05 06:24:30;  author: pdeegan;  state: Exp;  lines: +17 -7
+Clarifications of strings for boxconf, new strings added to support the new name, numdigits, restrict* options.
+----------------------------
+revision 1.9
+date: 2003/01/05 09:07:49;  author: pdeegan;  state: Exp;  lines: +7 -0
+VOCP 0.9.0 release
+----------------------------
+revision 1.8
+date: 2002/12/17 14:49:03;  author: pdeegan;  state: Exp;  lines: +33 -1
+VOCP 0.9 Release Candidate 13
+----------------------------
+revision 1.7
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +43 -3
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.6
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +13 -2
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.5
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +6 -2
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.4
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +5 -0
+Adding single digit support...
+----------------------------
+revision 1.3
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +4 -1
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.2
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +15 -2
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.1
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;
+*** empty log message ***
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Util.pm,v
+Working file: VOCP/Util.pm
+head: 1.11
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 11;	selected revisions: 11
+description:
+----------------------------
+revision 1.11
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +35 -4
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.10
+date: 2002/11/18 10:05:19;  author: pdeegan;  state: Exp;  lines: +3 -0
+New 'extension' option to safeTempFile
+----------------------------
+revision 1.9
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +4 -10
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.8
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +222 -1
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.7
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +44 -17
+Adding single digit support...
+----------------------------
+revision 1.6
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +39 -21
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.5
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +74 -9
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.4
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +46 -0
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.3
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +11 -0
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.2
+date: 2002/10/25 05:30:51;  author: pdeegan;  state: Exp;  lines: +6 -2
+*** empty log message ***
+----------------------------
+revision 1.1
+date: 2002/09/16 07:26:36;  author: pdeegan;  state: Exp;
+New structure for the VOCP module.  New modules, new layout, new use of
+MiniXML, new use of perl Makefile.PL
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Vars.pm,v
+Working file: VOCP/Vars.pm
+head: 1.14
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 14;	selected revisions: 14
+description:
+----------------------------
+revision 1.14
+date: 2003/02/05 06:24:55;  author: pdeegan;  state: Exp;  lines: +2 -1
+support for fixed digits and numDigits box attrib complete.
+----------------------------
+revision 1.13
+date: 2003/02/03 06:14:54;  author: pdeegan;  state: Exp;  lines: +2 -2
+Have finally made the move from /etc/mgetty+sendfax/vocp to /etc/vocp
+----------------------------
+revision 1.12
+date: 2003/01/27 02:00:15;  author: pdeegan;  state: Exp;  lines: +3 -2
+VOCP v0.9.2
+----------------------------
+revision 1.11
+date: 2003/01/05 09:07:49;  author: pdeegan;  state: Exp;  lines: +1 -0
+VOCP 0.9.0 release
+----------------------------
+revision 1.10
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +39 -2
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.9
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +1 -0
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.8
+date: 2002/11/26 08:34:34;  author: pdeegan;  state: Exp;  lines: +1 -0
+New shadow passwords and accompanying pwcheck/code changes
+----------------------------
+revision 1.7
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +3 -0
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.6
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +3 -1
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.5
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +30 -2
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.4
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +7 -1
+Adding single digit support...
+----------------------------
+revision 1.3
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +8 -0
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.2
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +25 -1
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.1
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;
+Getting close to final 0.9 release.  Adding VXML support.
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Box/MetaData.pm,v
+Working file: VOCP/Box/MetaData.pm
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.6
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +3 -0
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.5
+date: 2002/12/17 14:49:03;  author: pdeegan;  state: Exp;  lines: +13 -0
+VOCP 0.9 Release Candidate 13
+----------------------------
+revision 1.4
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +32 -4
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.3
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +45 -6
+box metadata support, call_monitor prog
+----------------------------
+revision 1.2
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +144 -21
+Adding single digit support...
+----------------------------
+revision 1.1
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Config/Box.pm,v
+Working file: VOCP/Config/Box.pm
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2003/02/05 22:32:10;  author: pdeegan;  state: Exp;  lines: +3 -3
+Reordered the tags when saving for easier perusing.
+----------------------------
+revision 1.2
+date: 2003/02/05 06:24:55;  author: pdeegan;  state: Exp;  lines: +3 -12
+support for fixed digits and numDigits box attrib complete.
+----------------------------
+revision 1.1
+date: 2003/02/04 04:22:50;  author: pdeegan;  state: Exp;
+Created the new VOCP::Config::XXX classes.
+VOCP::Config::Box is the new location for the old VOCP::BoxConfig, while
+VOCP::Config::Simple encapsulates reading simple key/value config files.
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Config/Simple.pm,v
+Working file: VOCP/Config/Simple.pm
+head: 1.1
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 1;	selected revisions: 1
+description:
+----------------------------
+revision 1.1
+date: 2003/02/04 04:22:50;  author: pdeegan;  state: Exp;
+Created the new VOCP::Config::XXX classes.
+VOCP::Config::Box is the new location for the old VOCP::BoxConfig, while
+VOCP::Config::Simple encapsulates reading simple key/value config files.
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device/Factory.pm,v
+Working file: VOCP/Device/Factory.pm
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +44 -3
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.4
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +11 -5
+Adding single digit support...
+----------------------------
+revision 1.3
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +6 -2
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.2
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +8 -3
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.1
+date: 2002/10/25 05:33:03;  author: pdeegan;  state: Exp;
+New support for device encapsulation
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device/Local.pm,v
+Working file: VOCP/Device/Local.pm
+head: 1.8
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 8;	selected revisions: 8
+description:
+----------------------------
+revision 1.8
+date: 2003/01/27 02:00:15;  author: pdeegan;  state: Exp;  lines: +1 -1
+VOCP v0.9.2
+----------------------------
+revision 1.7
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +35 -2
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.6
+date: 2002/11/26 08:34:43;  author: pdeegan;  state: Exp;  lines: +5 -1
+*** empty log message ***
+----------------------------
+revision 1.5
+date: 2002/11/11 11:08:56;  author: pdeegan;  state: Exp;  lines: +2 -0
+box metadata support, call_monitor prog
+----------------------------
+revision 1.4
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +21 -0
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.3
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +27 -9
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.2
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +7 -0
+Adding single digit support...
+----------------------------
+revision 1.1
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device/None.pm,v
+Working file: VOCP/Device/None.pm
+head: 1.3
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 3;	selected revisions: 3
+description:
+----------------------------
+revision 1.3
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +33 -2
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.2
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +1 -1
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.1
+date: 2002/12/05 14:38:51;  author: pdeegan;  state: Exp;
+VOCP commit for monthly backups
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device/Vgetty.pm,v
+Working file: VOCP/Device/Vgetty.pm
+head: 1.16
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 16;	selected revisions: 16
+description:
+----------------------------
+revision 1.16
+date: 2003/02/05 22:32:41;  author: pdeegan;  state: Exp;  lines: +6 -1
+Now calling inputMode() when switching to multi to ensure everything gets set correctly
+----------------------------
+revision 1.15
+date: 2003/02/05 06:23:37;  author: pdeegan;  state: Exp;  lines: +31 -15
+New support for numDigits and replacement of read_single with read_fixed complete.
+----------------------------
+revision 1.14
+date: 2003/02/04 04:23:24;  author: pdeegan;  state: Exp;  lines: +63 -34
+First attempt at supporting the new numDigits box attribute.
+----------------------------
+revision 1.13
+date: 2003/01/27 02:00:15;  author: pdeegan;  state: Exp;  lines: +84 -22
+VOCP v0.9.2
+----------------------------
+revision 1.12
+date: 2003/01/05 09:07:49;  author: pdeegan;  state: Exp;  lines: +28 -12
+VOCP 0.9.0 release
+----------------------------
+revision 1.11
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +10 -5
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.10
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +43 -1
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.9
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +7 -3
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.8
+date: 2002/11/09 20:49:50;  author: pdeegan;  state: Exp;  lines: +4 -1
+exit and receivefax boxes, support for caller id and cid filtering
+----------------------------
+revision 1.7
+date: 2002/11/06 04:32:32;  author: pdeegan;  state: Exp;  lines: +49 -45
+Fax finally working, group boxes, Util functions and more
+----------------------------
+revision 1.6
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +261 -74
+Adding single digit support...
+----------------------------
+revision 1.5
+date: 2002/11/01 05:17:27;  author: pdeegan;  state: Exp;  lines: +153 -41
+Device::Vgetty fixes, converted all <FILEHANDLES> to use FileHandle/VOCP::PipeHandle/DirHandle
+----------------------------
+revision 1.4
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +2 -0
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.3
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +14 -0
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.2
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;  lines: +188 -23
+Getting close to final 0.9 release.  Adding VXML support.
+----------------------------
+revision 1.1
+date: 2002/10/25 05:33:03;  author: pdeegan;  state: Exp;
+New support for device encapsulation
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Device/VgettyOld.pm,v
+Working file: VOCP/Device/VgettyOld.pm
+head: 1.5
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 5;	selected revisions: 5
+description:
+----------------------------
+revision 1.5
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +38 -3
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.4
+date: 2002/11/02 17:53:12;  author: pdeegan;  state: Exp;  lines: +11 -3
+Adding single digit support...
+----------------------------
+revision 1.3
+date: 2002/10/29 09:39:40;  author: pdeegan;  state: Exp;  lines: +2 -0
+Major VOCP.pm changes, xvocp fixes, vocplocal created along with VOCP::Device::Local for DSP play, lotsa bugfixes.
+----------------------------
+revision 1.2
+date: 2002/10/27 16:06:10;  author: pdeegan;  state: Exp;  lines: +25 -2
+txttopvf normalized behavior to match other topvf.  Delivery agent completed.
+----------------------------
+revision 1.1
+date: 2002/10/26 05:47:33;  author: pdeegan;  state: Exp;
+Getting close to final 0.9 release.  Adding VXML support.
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Util/CallMonitor.pm,v
+Working file: VOCP/Util/CallMonitor.pm
+head: 1.7
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 7;	selected revisions: 7
+description:
+----------------------------
+revision 1.7
+date: 2003/01/05 09:07:49;  author: pdeegan;  state: Exp;  lines: +7 -3
+VOCP 0.9.0 release
+----------------------------
+revision 1.6
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +8 -3
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.5
+date: 2002/12/17 14:49:03;  author: pdeegan;  state: Exp;  lines: +1 -1
+VOCP 0.9 Release Candidate 13
+----------------------------
+revision 1.4
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +19 -15
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.3
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +2 -0
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.2
+date: 2002/11/17 10:37:23;  author: pdeegan;  state: Exp;  lines: +272 -24
+semi-functional fax center and call monitor.  More modules
+----------------------------
+revision 1.1
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: Exp;
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+=============================================================================
+
+RCS file: /usr/local/cvsroot/vocp/prog/VOCP/VOCP/Util/DeliveryAgent.pm,v
+Working file: VOCP/Util/DeliveryAgent.pm
+head: 1.6
+branch:
+locks: strict
+access list:
+symbolic names:
+keyword substitution: kv
+total revisions: 6;	selected revisions: 6
+description:
+----------------------------
+revision 1.6
+date: 2003/02/03 06:14:55;  author: pdeegan;  state: Exp;  lines: +2 -2
+Have finally made the move from /etc/mgetty+sendfax/vocp to /etc/vocp
+----------------------------
+revision 1.5
+date: 2002/12/21 19:49:00;  author: pdeegan;  state: Exp;  lines: +2 -2
+Move CID logging out of VOCP with new cnd-logger, changes to vocp.pl to send more explicit mail, bug fixes to the deliveryagent and callmonitor
+----------------------------
+revision 1.4
+date: 2002/12/17 14:49:03;  author: pdeegan;  state: Exp;  lines: +2 -0
+VOCP 0.9 Release Candidate 13
+----------------------------
+revision 1.3
+date: 2002/12/11 05:51:48;  author: pdeegan;  state: Exp;  lines: +36 -1
+Added copyright notices and changed the our VERSIONS to old style my VERSION
+----------------------------
+revision 1.2
+date: 2002/12/11 03:16:05;  author: pdeegan;  state: Exp;  lines: +6 -0
+VOCP 0.9.0 RC 10
+----------------------------
+revision 1.1
+date: 2002/11/14 06:52:26;  author: pdeegan;  state: Exp;
+bugfixes, sendfax support, new location under Util for stuff like DeliveryAgent
+=============================================================================

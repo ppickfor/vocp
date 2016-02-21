@@ -1,0 +1,168 @@
+###################################################
+###                                             ###
+###                                             ###
+###  VOCP bin/programs                          ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+A number of utility programs are now included with VOCP.  This file is meant to briefly introduce the function of each.  Make sure you check out the doc/ files for a detailed description of VOCP's functionality and user programs.
+
+
+====================
+==     boxconf    ==
+====================
+
+The VOCP box configuration interface provides a graphical UI for the VOCP administrator to create and manage the VOCP boxes. See doc/boxconf.txt
+
+
+====================
+==   callcenter   ==
+====================
+
+The VOCP Call Center.  Provides real time monitoring of incomming calls and caller id information as well as quick access to VOCPhax (the faxing GUI) and xVOCP (local message retrieval GUI).  See doc/callcenter.txt
+
+
+====================
+==convert_boxconf ==
+====================
+
+Convert old style (0.8.X and previous) boxes.conf files to the new XML based format.  See doc/box-config-file.txt
+
+====================
+==  convert_fax   ==
+====================
+
+Manually convert g3 faxes to another image format.
+
+convert_fax.sh FAXNAME FORMAT [DESTINATIONDIRECTORY]
+
+You would normally use VOCPhax.  See doc/faxes.txt
+
+====================
+==  cnd-logger.pl ==
+====================
+
+Used to log incoming call CND (caller id, name, etc) information as calls arrive.  See the doc/caller-id.txt file for details.
+
+====================
+==   cryptpass    ==
+====================
+
+Simple utility to convert password to crypted format.
+
+
+====================
+==    email2vm    ==
+====================
+
+Convert emails to sound files using Text-to-speech and deliver them to a voice mail box.  See doc/emails-to-speech.txt and doc/text-to-speech.txt
+
+====================
+==    messages    ==
+====================
+
+Prehistoric interface to local message retrieval.  Avoid me ;)
+
+
+====================
+==    pvftomp3    ==
+====================
+
+Convert PVF files to mp3 format.  See doc/email-attachments.txt
+
+
+====================
+==    pvftoogg    ==
+====================
+
+Convert PVF files to ogg vorbis format.  See doc/email-attachments.txt
+
+====================
+==    pwcheck     ==
+====================
+
+Setgid wrapper for password validation - calls pwcheck.pl.  Used by VOCP in cases when running as an unpriveleged user (like when running xVOCP).  This program must have mode 2755:
+
+-rwxr-sr-x    1 root     vocp        11523 Dec  6 00:23   pwcheck
+
+
+====================
+==   pwcheck.c   ==
+====================
+
+Source code for pwcheck, above.  Compiled during VOCP installation.
+
+====================
+==   pwcheck.pl   ==
+====================
+
+Validates passwords.  Must be run as a user who has permission to read the VOCP boxes.conf.shadow file.  See the pwcheck entry above and doc/boxconf.txt
+
+
+====================
+== toggleEmail2Vm ==
+====================
+
+Used to suspend and restart email to voicemail delivery.  Can be used directly, from within the xVOCP menu or using a script box (through the telephone).  See the doc/emails-to-speech.txt file.
+
+====================
+==    txttopvf    ==
+====================
+
+Converts ascii text to the PVF sound file format, using the Festival speech synthesis engine.  See doc/text-to-speech.txt and doc/emails-to-speech.txt
+
+
+====================
+==    view_fax    ==
+====================
+
+Used to manually view a g3 fax file.  Normally you would use VOCPhax instead.
+
+./view_fax.sh FAXFILE [SCALETO]
+
+See doc/faxes.txt
+
+====================
+==    vocphax     ==
+====================
+
+VOCP Fax GUI.  Provides a graphical environment to view, create and send faxes. See the doc/faxes.txt file.
+
+====================
+==   vocplocal    ==
+====================
+
+Local interface to VOCP.  You can "call in" to your VOCP system using your keyboard for input and speakers for output.  Mainly used for testing your configuration but may even be used to retrieve your voice mail or otherwise interact with VOCP.  See the doc/vocplocal.txt file.
+
+====================
+==    wav2rmd     ==
+====================
+
+Utility program to simplify converting .wav files to .rmd files compatible with your modem.
+
+====================
+==     xvocp      ==
+====================
+
+The local graphical interface for voice message retrieval.  Listen to and manage your voice mail using xVOCP.  See doc/xvocp.txt
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

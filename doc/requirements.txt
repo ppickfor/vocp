@@ -1,0 +1,131 @@
+###################################################
+###                                             ###
+###                                             ###
+###  VOCP Requirements                          ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+This document briefly describes the requirements for running the VOCP system.  Read the INSTALL or upgrading.txt files for instructions on installing - basically, you need to run ./install_vocp.pl as root.
+
+- Requirements
+  - Un*x
+  - Modem
+  - Vgetty
+  - Perl
+  - Core perl modules
+  - Optional perl modules
+  - 3rd party programs
+
+
+
+###################################################
+###                 Requirements                ###
+###################################################
+
+To run the core VOCP voice messaging system, you need at least:
+
+
+==> a Linux or Unix type host <==
+
+
+==> a real and supported voice modem <==
+
+Real in the sense of NOT a "controllerless" modem - ie the empty shells sold as "WinModems".  The modem must have hardware support for caller-id if you wish to use the associated functionality.
+
+The modem must function under Un*x and you should be able to "talk" to it using minicom or a similar program.  See the modems.txt file for details.
+
+
+==> the mgetty/vgetty package <==
+
+VOCP uses the mgetty+sendfax/vgetty package to speak with your voice modem.  It is available at
+
+http://alpha.greenie.net/mgetty/
+
+See the vgetty.txt docs for details.
+
+
+==> Perl <==
+
+You need to have a semi-recent installation of Perl.  Version >= 5.8.0 recommended.  If perl is not installed, get it at http://www.perl.org/
+
+
+==> Core Perl Modules <==
+
+VOCP uses a few perl modules - if these are not found during the installation, you will be prompted to have the installer automatically fetch them using CPAN.  Say yes to install with CPAN, say no if you'd rather do it yourself (perhaps by using "perl -MCPAN -e 'install Module::Name'" or manually).
+
+The basic requirements include
+
+  Modem::Vgetty - to control the modem through vgetty
+
+  XML::Mini - a pure perl XML generator/parser, used for config files and message meta data
+
+
+==> Optional Perl Modules <==
+
+Additional modules are required for certain functions.  These will be installed if they are missing and you answer 'y' at the prompt during the VOCP installation.  These are
+
+  Audio::DSP
+   Used by the xVOCP GUI to play the messages through your speakers
+  
+  Crypt::CBC
+  Crypt::Blowfish
+   Used by VOCPweb to encrypt the session cookies
+  
+  Tk
+  Tk::JPEG
+   Used by the VOCP graphical interfaces (xVOCP, VOCPhax, Call Center, BoxConf)
+  
+  MIME::Parser
+   Used by the email2vm.pl script to read in emails which are converted to voice messages
+  
+
+Any of these modules may be installed manually by running:
+
+# perl -MCPAN -e 'install Module::Name'
+
+as root.
+
+
+==> Other Software <==
+
+  Finally, VOCP may require some additional 3rd party programs to operate (if the corresponding functionality is desired):
+  
+  sendmail, postfix or other SMTP MTA
+    Used to send voice mail notifications through email
+  
+  ogg vorbis' oggenc
+    Used to encode attached voice mail messages in the Ogg Vorbis format
+    http://www.vorbis.com/
+  
+  lame or other mp3 encoder
+    Used to encode attached voice mail messages as mp3
+    http://lame.sourceforge.net/
+    
+  festival
+    Festival speech synthesis package, used to encode textual email messages and deliver them as voice mail messages.
+    http://www.cstr.ed.ac.uk/projects/festival/
+    
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+
+
+

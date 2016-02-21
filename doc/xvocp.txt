@@ -1,0 +1,118 @@
+###################################################
+###                                             ###
+###  XVOCP - Graphical voice message retrieval. ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+xVOCP presents a graphical user interface to the contents of voice mail boxes.
+
+- Requirements
+- Usage
+- Tips
+- Technical description
+- History
+
+
+###################################################
+###                 Requirements                ###
+###################################################
+If you've installed VOCP you should already have all the required modules to run xVOCP.  xVOCP requires:
+  - A recent version of Perl 5
+  - VOCP and accompanying modules (XML::Mini, VOCP::XXX, Audio::DSP)
+  - Perl Tk 
+
+
+###################################################
+###                    Usage                    ###
+###################################################
+Using xVOCP should be rather straight forward.  Launch the program:
+
+/usr/local/vocp/bin/xvocp.pl
+
+as the owner of the box(es) you wish to view.  If multiple boxes exist for this user, select the box in the Box menu.  Enter the box password.
+
+You can double-click on a message to hear it's contents.  You may also use the buttons to 
+
+Refresh - refresh the message list
+
+Stop 	- Stop play
+
+Play	- Play the selected message
+
+Play All- Play all messages from the selected message 
+		  to the end of the list
+
+Forward	- Forward the selected message through email
+
+Delete	- Delete the selected message.
+
+An export function is also available from the Message menu, that allows you to export the selected message to either ogg (vorbis), mp3 or wav format.
+
+
+
+###################################################
+###                   Tips                      ###
+###################################################
+
+* problem connecting to display
+
+On some platforms, I've had trouble starting the program - getting a 
+
+couldn't connect to display ":0"
+
+error.  I'm still not certain why this is occurring (the program runs as the calling user) but the simple fix is to do an
+
+xhost + localhost
+
+before starting the program.
+
+
+* forking and Audio::DSP
+
+The first version of xVOCP was created by Lluís Padró.  The program in it's original form is single threaded and does not rely on anything but Perl Tk (using /dev/dsp directly instead of Audio::DSP, etc.) and as such may be useful on platforms with special requirements.
+
+###################################################
+###             Technical description           ###
+###################################################
+
+xVOCP uses Perl Tk to create and manage the graphical user interface and the Audio::DSP module (through VOCP's VOCP::Device::Local device) to speak with the system's sound card.  
+
+Because converting and playing sound files can be time consuming, using a single thread became untenable as the program would freeze for long periods.  At the cost of a little added complexity and the loss of a certain amount of platform independence, the program now forks a secondary child process to deal with all sound related requests - this greatly helps in keep the system responsive.
+
+Since xVOCP uses much of VOCP's functionality, both in interacting with the boxes and in converting between various formats, it is impossible for the moment to install a SIG{CHLD} handler without disrupting work done within the VOCP modules (since all system() calls and pipes both rely on SIG{CHLD} to reap subprocesses).  I don't think this is a problem as xVOCP only spawns a single child that isn't expected to die until the parent process is terminated.
+
+
+
+###################################################
+###                  History                    ###
+###################################################
+
+
+Aug 2002, first version of xVOCP was created by Lluís Padró who proposed it might be included with VOCP and sent it to me.
+
+Dec 2002, first public release of xVOCP, bundled with VOCP 0.9.0
+
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Nov 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+

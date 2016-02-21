@@ -1,0 +1,239 @@
+###################################################
+###                                             ###
+###  VOCP Email To Speech                       ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+VOCP, in combination with the festival speech synthesis engine can convert emails (received by your MDA - sendmail, postfix, etc. - or through fetchmail )to voice mail, so you can hear your emails by logging in through the telephone.
+
+TOC
+- Requirements
+- Setup
+	- Software
+	- Email delivery
+	  - fetchmail
+	  - MDA
+- Controlling email2vm delivery
+	- local control
+	- remote control
+- Conclusion
+
+###################################################
+###               Requirements                  ###
+###################################################
+
+To use the email to voicemail functionality, you need:
+
+- the festival text to speech engine (http://www.cstr.ed.ac.uk/projects/festival/)
+
+- make sure you have the MIME::Tools Perl module installed.  You can test this with:
+  $ perl -MMIME::Tools -e 'print $MIME::Tools::VERSION'
+  
+If you get an error, MIME::Tools is not installed.  Install it with
+  # perl -MCPAN -e 'install MIME::Tools'
+
+- a fetchmail setup that retrieves mail from your mail server and forwards it to the mail delivery program (recommended)
+OR
+- a MTA running on the VOCP host that accepts mail for your domain
+
+
+
+###################################################
+###                   Setup                     ###
+###################################################
+
+
+==> Software Setup <==
+Get and install Festival as described at http://www.cstr.ed.ac.uk/projects/festival/
+
+Take note of where you install festival's text2wave program.
+
+As root, edit /usr/local/vocp/bin/txttopvf and set the $txt2wavProg variable to the full path to the text2wave executable.  Verify that $wav2pvfProg contains the correct path to the wavtopvf mgetty program.
+
+As root, edit the /usr/local/vocp/bin/email2vm.pl file.  Set $MaxChars to a reasonable value for the number of characters to convert to speech (you don't want to hear the entire annual report for DrugCo through the phone, trust me).
+
+Now, you are ready to accept emails in your voice mail box.
+
+Test everything.  Try:
+$ cat > foo.txt
+From: niceguy@vocpsystem.com
+Subject: hi there
+
+
+Hello you are my nice friend.
+^D
+
+$ /usr/local/vocp/bin/txttopvf `pwd`/foo.txt `pwd`/foo.pvf
+
+$ ls -l foo.*
+-rw-------    1 user   user     444744 Dec  5 13:48 foo.pvf
+-rw-rw-r--    1 user   user         79 Dec  5 13:47 foo.txt
+
+Hooray.  You can now play the pvf file, say by converting it to wav (pvftowav) or whatever.
+
+Try to deliver the message to a box (you must own the box unless you are running as root), lets say box 100.
+
+$ cat foo.txt |  /usr/local/vocp/bin/email2vm.pl 100
+
+If all went well, you can start up xvocp, log in to box 100 and hear the harmonious festival voice reading the email to you.
+
+Note that txttopvf will accept any text but email2vm.pl expects to be able to parse an email, so it must be a valid email message (as above).
+
+
+==> Email delivery <==
+
+ - Using fetchmail
+ 
+Fetchmail, a nice program written by ESR and friends, can be used to... fetch mail and it's probably already installed on your system.  It allows you to connect to any number of email accounts on distant hosts through multiple protocols (IMAP, POP etc).  The great thing in our case, is that it can be used to convert emails to voice mail.
+
+
+Fetchmail is immensely configurable and covering all the possibilities here is pointless - see the man page for details.  Here is an example command line usage for me:
+
+$ fetchmail -k -s -p IMAP -u myuser  -m "/usr/local/vocp/bin/email2vm.pl 100" mailer.psychogenic.com 
+
+The parts of this command are:
+
+-k  Leave the messages that are fetched on the server (this is so you can actually retrieve your emails later)
+
+-s  Be quiet.  Without -s a whole bunch of status info is produced that messes up the email parser
+
+-p  I use the wonderful IMAP protocol, adjust to your needs. 
+
+-u  Your mail system username
+
+-m  The Mail Delivery Agent to run.  Normally, fetchmail delivers to something like sendmail or postfix.  In our case, we want 
+    the email2vm program to convert the messages so we stick it in the -m option.  Notice the '100' parameter - that is the
+    voice mail box the email will be delivered to, adjust accordingly (to a box that you own).
+    
+mailer.psychogenic.com My mail server, set it to something valid for you.
+
+
+Try using fetchmail in this manner from the command line.  Play with it until it works (of course, you need to have some new messages waiting in your email box).
+
+This setup works well from the command line - all you need to do is run it as the owner of the destination voice mail box - but it has some drawbacks.  The main one being that it requests your password interactively, so you can't run it like this while you are out.
+
+The way to regularly have emails delivered to your voicemail box is to set up a cron job to periodically run fetchmail.
+
+A basic setup would have you create a ~/.fetchmailrc file which contains all the relevant info, for example:
+
+poll mail.psychogenic.com proto IMAP user "myusername" pass "mysecret" mda "/usr/local/vocp/bin/email2vm.pl 100" keep
+
+now do 
+$ chmod 600 ~/.fetchmailrc
+
+so others can't read your password and so fetchmail will accept it as valid.
+
+Now you can run fetchmail like this:
+
+$ fetchmail
+
+set up a cron job to do this, eg every 5 minutes:
+
+$ crontab -e
+
+*/5 * * * * /usr/bin/fetchmail > /dev/null 2>&1
+
+See the man page for much much much more detail.
+
+
+==> using an MDA <==
+
+If you have a MDA setup on your system (postfix, qmail, sendmail etc) and the system is setup as the MX record (mail server) for a given domain, you can try this - although it assumes the MDA is running as 'root' or as the destination box owner. 
+
+All you need to do is set up an alias for the address you wish to use to convert received emails to voice mail.
+
+Often, this is as simple as editing the /etc/aliases file and running newaliases.  Here is an example /etc/aliases entry:
+
+ patsaddr:      patsvm,pat
+ patsvm:        "| /usr/local/vocp/bin/email2vm.pl 100"
+ 
+Mail arriving at patsaddr@example.com will be forwarded to 'pat' (for instance, a cyrus mail user) and to 'patsvm'.  Mail arriving at patsvm will be piped into the email2vm program and delivered to box 100.  You should be able to add multiple boxes, if you wish, like this:
+
+ patsvm:        "| /usr/local/vocp/bin/email2vm.pl 100 200 250"
+
+and translated voice mails will be delivered to all these boxes.  Note that the mail program either needs to:
+
+- run as root
+- use a setuid wrapper to deliver messages, either running as root or changing to the uid of the box owner
+- run as the box owner
+
+This is because delivered messages must be owned by the box owner so s/he can listen to and delete them.
+
+I suggest you use fetchmail...
+
+
+###################################################
+###       Controlling email2vm delivery         ###
+###################################################
+
+Using fetchmail is a nice way to retrieve and translate emails to voicemails and one reason why this is the case is that, while I sit at my computer and read my mail using Evolution, the messages I go through get marked as read.  Messages that have been read are not retrieved by fetchmail with the above config, so I don't get a bunch of messages that I've already seen in my voicemail box.
+
+But what about when you are simply away from your desk for a long period?  It isn't very interesting to arrive every morning, fetch your mail and then go through a bunch of duplicate messages in your voicemail box.  This is where the toggleEmail2Vm program comes in (you can find it within the /usr/local/vocp/bin directory).
+
+
+==> local control <==
+
+You can use xVOCP to turn email2vm delivery on and off, using the "Box->toggle email2vm" menu item (see the xvocp.txt file).  To suspend email2vm delivery, xVOCP runs the toggleEmail2Vm.pl script alternately creating and destroying .vocpStopEmail2Vm.XXX files (where XXX is the affected box number).  If, during an email2vm delivery, a .vocpStopEmail2Vm.XXX file is found in the box owner's home directory then emails that would have been delivered to box XXX will be ignored.
+
+You can also run toggleEmail2Vm.pl manually if you like (do a 'perldoc /usr/local/vocp/bin/toggleEmail2Vm.pl' for more info), but this will leave your box password lying about in your command history (as it must be passed as a command line argument).
+
+
+==> remote control <==
+
+We should also have a way to toggle email to voicemail delivery when we are out.  This is possible using either a command shell or a script type box.  To set up a script box, launch VOCP boxconf as root (/usr/local/vocp/bin/boxconf.pl - see boxconf.txt for details) and select an available box number.
+
+Create a new 'script' box and set it with these parameters
+
+- number	the selected box number, e.g. 300
+- owner		root
+- autojump 	001 (to return to the root box when done)
+- run		/usr/local/vocp/bin/toggleEmail2Vm.pl
+- input		raw
+- return	tts
+
+Save and verify that the boxes.conf and boxes.conf.shadow files look ok (see boxconf.txt and box-config-file.txt for details).
+
+Move the two files to /etc/vocp/ and do 
+
+# chown root:vocp /etc/vocp/boxes.conf.shadow
+# chmod 0640 /etc/vocp/boxes.conf.shadow
+
+
+Now, you can call into your system, enter the script box number.  When you've accessed the box, enter:
+
+BOXNUMBER STAR BOXPASSWORD
+
+For example, '100*7838' would be a request to toggle email2vm for box 100 with password 7838.  If the box number is valid and the box is indeed a mail box and the password is valid for this box, you will hear a status message indicating that the email2vm has been turned on or off for the box.  Otherwise, you will hear an error message to give you an idea what went wrong.
+
+
+
+###################################################
+###                 Conclusion                  ###
+###################################################
+
+Now that everything is set up and working you can enjoy the fruits of your labor and go on that vacation through the countryside - all without loosing touch with your email account.
+
+I would be interested in hearing from anyone who sets up a novel use for the system, who implements a way to filter exactly which messages end up being converted to voice mail (say based on the From, Subject, Spam filters etc.) or figures out a way to TTS emails in different languages.
+
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF

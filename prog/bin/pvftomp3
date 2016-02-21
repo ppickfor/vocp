@@ -1,0 +1,130 @@
+#!/usr/bin/perl -w
+use strict;
+use VOCP::Util;
+use VOCP::Vars;
+use VOCP::PipeHandle;
+use FileHandle;
+
+### File:         pvftomp3
+### Descriiption: This short script uses pvftowav and the mp3 encoder of your 
+###               choice to create an MP3 file from the pvf format. The default
+###               setup assumes that you have "lame" (an MP3 encoder) installed 
+###               on your system. If you want to use a different encoder, modify
+###               the relevant block below.Author refuses to take any 
+###               responsibilty for this script; use it at your own risk. 
+### Author:       Ali Naddaf (ali@naddaf.net)
+###
+### Contributor:  Pat Deegan (http://www.psychogenic.com)
+###			Aug 25 20002. Added some defaults, mucho error checking and 
+###			security enhancements.
+###			Oct 30 2002.  Better security, new interface allows output to STDOUT.
+###
+
+
+ 
+# ----------------   MP3 ENCODER SECTION  ---------------------------------------#
+# This is the mp3 encoder. You can change this to your preferred program as long as
+# it can handle low sample rates. If you do so, please modify the $encoderOptions 
+# below since it depends on the application that you choose. "lame" is a very nice 
+# free encoder that can be installed easily. At the time of writing, you could dowmnload
+# it from www.mp3dev.org/mp3.
+my $encoder = "/usr/local/bin/lame";
+my $encoderOptions = "  --silent --preset phon+ -h ";
+
+my $pvftooldir = $VOCP::Vars::Defaults{'pvftooldir'} || "/usr/local/bin"; # Use full path to 'pvftoXXX' executables
+
+my $defaultTempDir = $VOCP::Vars::Defaults{'tempdir'} || '/tmp';
+#----------------   End of MP3 ENCODER SECTION ----------------------------------#
+
+# Probably there is nothing below this line that you need to modify.
+
+
+############ Security environment #############################
+
+$ENV{'ENV'} = '';
+$ENV{'PATH'} = '/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin';
+$ENV{'CDPATH'} = '';
+$ENV{'BASH_ENV'}="";
+$ENV{'TERM'} = 'xterm' unless ($ENV{'TERM'});
+
+# Check for the encoder's availability
+die "Can't find the selected encoder: '$encoder'" unless (-e $encoder);
+die "Can't run the selected encoder: '$encoder'" unless (-x $encoder);
+
+my $pvftowav = "$pvftooldir/pvftowav";
+
+# Check pvftowav avail
+die "Can't find the '$pvftowav' program." unless (-x $pvftowav);
+
+# Get command line args
+my $pvffile = $ARGV[0] || die "Must pass a PVF file to convert to $0";
+my $soundfile = $ARGV[1];
+
+# Security - refuse to overwrite existing files.
+
+die "Sorry.  I can't overwrite the existing '$soundfile' file" if ($soundfile && -e $soundfile);
+
+
+
+# Check for availability of file to convert
+die "Can't find file '$pvffile'" unless (-e $pvffile);
+die "Can't read file '$pvffile'" unless (-r $pvffile);
+
+
+#### Convert to wav
+my $basefilename = $soundfile;
+$basefilename = "$defaultTempDir/pvftomp3$$" unless ($basefilename);
+
+my ($wavFileHandle, $wavFileName) = VOCP::Util::safeTempFile($basefilename);
+
+unless ($wavFileHandle && $wavFileName) 
+{
+	die "Could not open a temp file based on name '$basefilename'";
+}
+
+my $pvfToWavFh = VOCP::PipeHandle->new();
+
+if (! $pvfToWavFh->open("$pvftooldir/pvftowav $pvffile |"))
+{
+	die "Could not open '$pvftooldir/pvftowav $pvffile' for read $!";
+}
+
+$wavFileHandle->autoflush();
+
+while (my $line = $pvfToWavFh->getline())
+{
+	$wavFileHandle->print($line);
+}
+$pvfToWavFh->close();
+
+$soundfile = "" unless ($soundfile);
+# now change that wav file to mp3 using the encodedr of your choice
+my $enc = "$encoder $encoderOptions $wavFileName $soundfile";
+
+
+if ($soundfile)
+{
+	my $ret = system($enc);
+	exit (0);
+}
+
+my $wavConvFh = VOCP::PipeHandle->new();
+
+if (! $wavConvFh->open("$enc - |"))
+{
+	unlink $wavFileName;
+	$wavFileHandle->close();
+	die "Call to '$enc' unsuccessful: $!";
+}
+
+while (my $data = $wavConvFh->getline())
+{
+	print $data;
+}
+
+$wavConvFh->close();
+# Delete our temp wav file
+unlink $wavFileName;
+$wavFileHandle->close();
+
+exit (0);	

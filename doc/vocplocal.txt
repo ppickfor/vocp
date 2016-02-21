@@ -1,0 +1,106 @@
+###################################################
+###                                             ###
+###              vocplocal.pl                   ###
+###                                             ###
+###  VOCP Local access program                  ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Vocplocal allows you to interact with VOCP as if you had just called in, using your keyboard in the place of the phone's DTMF keys and your speakers for output.
+
+It is most usefull for testing your configuration but it can even be used to retrieve your messages, if only to impress your friends and family ;)
+
+- Requirements
+- Setup
+- Usage
+  - caller input
+  - recording
+- Conclusion
+
+
+
+###################################################
+###                 Requirements                ###
+###################################################
+
+Using vocplocal presuposes that you've correctly installed and configured VOCP.  In addition, vocplocal requires
+
+  - Audio::DSP perl module (should have been installed with VOCP)
+  - a working and configured sound card
+
+###################################################
+###                    Setup                    ###
+###################################################
+
+
+The default configuration should be sufficient for admin use and testing using vocplocal, however there are a few parameters in /usr/local/vocp/bin/vocplocal.pl that you can tweak if you like.
+
+  If you wish to increase or decrease logging output, change the value of $Debug - setting it to 0 for no ouput, 1 for moderate debug info and 2 for verbose output.
+  
+  If you would like any system user to be able to play with vocplocal, change the value of
+   
+$UsePwCheck = 0;
+
+to 
+
+$UsePwCheck = 1;
+
+You may also want to set the $CALLER_ID variable.  This is very useful when you are testing your caller ID based filtering (see the caller-id.txt file for neat caller id tricks with VOCP).
+
+###################################################
+###                    Usage                    ###
+###################################################
+
+Turn on your speakers and open a terminal window.
+
+As root (see note above concerning $UsePwCheck if you want to use vocplocal as a normal user), launch vocplocal:
+
+# /usr/local/vocp/bin/vocplocal.pl
+
+
+==> caller input <==
+
+You will see a bunch of debug output and hear the root box greeting.  The final lines will look something like:
+
+ /usr/local/vocp/bin/vocplocal.pl [23874]: Getting user selection
+
+ Enter DTMF Selection ([0-9]+<ENTER>):
+ 
+Use the keyboard to enter your simulated caller's input, then hit the ENTER key.
+
+Navigating the system in this manner is similar, but NOT identical to, doing it over the phone.
+
+While boxes will expect you to use '*NNN#' to enter multi-digit input over the phone, you need only enter 'NNN' through vocplocal.  So, over the phone, you would log in by entering '*999#' but while using vocplocal you should simply type '999' and press the ENTER key.
+
+
+==> recording messages <==
+
+Vocplocal does not currently support recording messages.  All other functionality is intact but, to date, the VOCP::Device::Local does not support recording sound.  At this time, I don't see a point in implementing this but if anyone wants to do it and gets it working reliably, I'll include the patch.
+
+
+###################################################
+###                  Conclusion                 ###
+###################################################
+
+With vocplocal, you can test your VOCP configuration from the comfort of your computer and save some quarters from the public phone pit while you do it.  If you think vocplocal should have additional features that would help a VOCP admin, let us know.
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Nov 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

@@ -1,0 +1,204 @@
+Installing vocpweb is not overly complex but does require some configuration of your web server.
+
+Requirements:
+
+	
+	A complete VOCP installation
+	
+
+	Apache or another web server
+	
+	The CGI Perl module (installed by default with Perl)
+	
+	The Crypt::CBC and accompanying block cipher (eg Crypt::Blowfish, can both be installed during VOCP installation)
+	
+	Some kind of setup to reach your internet connected machine, if you wish to access your messages from Tokyo or wherever.
+
+
+Installation
+
+Installation of vocpweb is done in two parts:
+	
+	Installation and setup of the vocpweb cgi
+
+	Configuration of webserver.
+
+
+
+Installation and setup of the vocpweb cgi
+
+To ensure maximum privacy, messages have been left to users with 600 permissions for the owner (only readable by him/her).  The web server usually runs as some other user (often 'nobody') and cannot normally read or manipulate these files.  Therefore, either we need to make the files readable by the webserver or get the vocpweb cgi to run "set uid" (as another user - starts as root, becomes 'nobody' and then may become a given user to read that users files).  This involves some security considerations.  The setup presented here is most likely to be efficient and safe, while keeping users' messages private.  For more detailed security considerations and alternative configurations, see the SECURITY file.
+
+The recommended installation method is to NOT run the program setuid.  If your webserver is protected (say only accessible on an internal LAN) and your main, top and highest concern is protecting messages from internal threats, then you may choose to run the program suid - be sure to read the security information on the website or in the SECURITY file.
+
+*** Steps for BOTH TYPES of installation ***
+
+1) Choose a location (that is or will be) accessible by the web server, for example:
+
+/usr/local/apache/htdocs/vocpweb/
+
+so 
+# mkdir /usr/local/apache/htdocs/vocpweb
+
+2) Copy all the contents of vocp-X.X.X/vocpweb to that location
+
+# cp -R vocp-X.X.X/vocpweb/* /usr/local/apache/htdocs/vocpweb
+
+3) Edit /path/to/vocpweb.cgi and change the 
+
+my $CryptKey = "$DefaultCryptKey";
+
+line by replacing $DefaultCryptKey with some random string.  You may also change the $CipheAlgo for another Crypt::CBC-compatible algorithm if you like.
+
+3) If the VOCP conf files are installed somewhere other than /etc/vocp on your system:
+
+edit the line in /path/to/vocpweb.cgi (near the top)
+
+	my $VOCP_home = '/etc/vocp';
+	
+
+so that the /etc/vocp is replaced by the actual location.
+
+
+
+
+*** Steps for NORMAL (non-setuid and recommended) installation ***
+
+4a) Uncomment the 'group' option in vocp.conf and set it to the vocp group you created during the install
+something like:
+
+group vocp 
+
+Also uncomment the 'cachedir' option that should be nearby, and put:
+
+cachedir cache
+
+This will make new messages readable by the vocp group.  If you are upgrading VOCP, make sure any old messages that
+already exist are also readable by the group with
+# cd /var/spool/voice/incoming
+# chgrp -R vocp ./*
+# chmod -R g+r ./*
+
+5a) Make sure 
+/var/spool/voice/incoming/cache
+and
+/usr/local/apache/htdocs/vocpweb/sounds
+are writeable by the by the vocp group
+
+- make the directories if they do not exist
+- then:
+# chgrp vocp /var/spool/voice/incoming/cache
+# chgrp vocp /usr/local/apache/htdocs/vocpweb/sounds
+# chmod 775 /var/spool/voice/incoming/cache
+# chmod 775 /usr/local/apache/htdocs/vocpweb/sounds
+
+6a) Add the webserver user to the vocp group
+
+# usermod -G vocp nobody
+
+and restart the webserver (usually something like '/usr/local/apache/bin/apachectl restart' for Apache).
+
+7a) You are now done with the vocpweb setup, proceed to webserver setup below.
+
+
+*** Steps for SUID installation ***
+4b) If your web server runs as a user other than nobody (do a 'ps -ef | grep httpd' to find out)
+
+change the line 
+my $Web_serv_user = 'nobody';
+
+in /usr/local/apache/htdocs/vocpweb/vocpweb.cgi to the web server username on your system.
+
+5b) Make sure
+/var/spool/voice/incoming/cache
+and
+/usr/local/apache/htdocs/vocpweb/sounds
+are writeable by anyone (and that the "sticky bit" is set)
+ 
+# chmod 1777 /var/spool/voice/incoming/cache
+# chmod 1777 /usr/local/apache/htdocs/vocpweb/sounds
+
+
+6b) The message deletion button is disabled by default (this avoids mistakes by users but is also
+more secure).  Since you are running suid you may enable it.  If you wish to enable it change the 
+line in /usr/local/apache/htdocs/vocpweb/vocpweb.cgi
+
+# $Allow_deletes -> must set equal to '1' for users to be
+# able to delete messages from the VOCPweb
+my $Allow_deletes = '0'; 
+
+to
+my $Allow_deletes = '1';
+
+6) Set the permissions on vocpweb.cgi so that it runs setuid
+
+# chown root /usr/local/apache/htdocs/vocpweb/vocpweb.cgi
+# chmod 4755 /usr/local/apache/htdocs/vocpweb/vocpweb.cgi
+
+That's all for installing vocpweb.cgi.  Now proceed to the web server setup.
+
+
+*** WEBSERVER Setup ***
+I am assuming you are using Apache, if not you will have to adapt these instructions accordingly.
+
+All you really need to do is make sure you the webserver will allow you to run a CGI in the
+directory in which you have selected to install VOCP.
+
+If you have a domain name, you could choose to create a virtual host for the messaging system, such
+that http://vocp.yourcompany.com/ leads directly to the login.  
+This would involve adding something to httpd.conf similar to:
+
+
+<VirtualHost *>
+        ServerAdmin     whoever@yourcompany.com
+        DocumentRoot    /usr/local/apache/htdocs/vocpweb/
+        ServerName      psychogenic.com
+        Options ExecCGI
+        <Location />
+                AuthName "Yourcompany VOCP messaging area"
+                AuthType Basic
+                AuthUserFile /usr/local/apache/access/vocp.db
+                require valid-user
+        </Location>
+        ServerAlias     vocp.yourcompany.com
+</VirtualHost> 
+
+and setting up the DNS to respond with 123.123.123.123 for request about vocp.yourcompany.com.
+
+You may choose not to create a virtual host for VOCPweb.  In that case, take an existing host and add an appropriate Location entry,
+for example:
+
+<Directory /path/to/vocp>
+	Options ExecCGI
+        AuthName "Yourcompany VOCP messaging area"
+        AuthType Basic
+        AuthUserFile /usr/local/apache/access/vocp.db
+        require valid-user
+</Directory>   
+
+
+The important things to note here are:
+
+	- The "Options ExecCGI" which allow executions of CGIs.  
+
+	- The Auth* stuff and the 'require' directive, which password protect the VOCPweb interface.  This is
+	not required but highly recommended.
+
+To complete the setup of the password protected directory, create the access control file with htpasswd.  For example
+
+# htpasswd -c /usr/local/apache/access/vocp.db pat
+will create the vocp.db file and ask for pat's password.  Type it in.
+You may add entries to the file with
+# htpasswd /usr/local/apache/access/vocp.db whatever
+at any time.
+
+I recommend that you give each user a unique password.  That way if you wish to later deny someone access to the interface, you
+may simply remove that person's entry instead of telling everyone that a new password is in effect.
+
+It is also recommended to have users login and check their messages through an SSL connection (encrypted connection, easily identified
+by the https://... URLs).  SSL must be enabled through the webserver setup and is beyond the scope of this document, however it is well worth looking into.
+
+That's pretty much all there is to setting up the webserver.  For additional assistance, please see http://www.apache.org/ - the search
+tool is really helpful (as long as you keep your queries short ;) ).
+
+

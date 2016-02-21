@@ -1,0 +1,6 @@
+Revision history for Perl extension VOCPDep.
+
+0.01  Sat Nov 23 23:37:14 2002
+	- original version; created by h2xs 1.22 with options
+		-X VOCPDep
+

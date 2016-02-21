@@ -1,0 +1,251 @@
+#!/usr/bin/perl -T -w
+use VOCP::Util;
+use VOCP::PipeHandle;
+use FileHandle;
+use Fcntl;
+use strict;
+
+=head1 txttopvf
+
+=head2 NAME
+
+txttopvf - ascii text to pvf (audio format) converter.
+
+=head2 SYNOPSIS
+
+
+txttopvf TEXTINPUTFILE [PVFOUTPUTFILE]
+
+/path/to/txttopvf /path/to/textfile.txt /path/to/outputpvffile.pvf
+
+or
+
+/path/to/txttopvf /path/to/textfile.txt > /path/to/outputpvffile.pvf
+
+or 
+
+open(PVFCONTENTS, "/path/to/txttopvf /path/to/textfile.txt |");
+
+=head2 DESCRIPTION
+
+This program translates a txt file to a wave file (using festival's
+text2wave program) and converts the resulting wave content to pvf 
+(portable voice format).
+
+It take 1 or 2 command line arguments:
+
+TEXTINPUTFILE is a file from which to read text.
+
+The optional PVFOUTPUTFILE arg will write the resulting pvf file
+to the PVFOUTPUTFILE location.  If no PVFOUTPUTFILE argument is provided, 
+the pvf contents will be written to STDOUT.
+
+=head2 NOTES
+
+Make sure you verify and validate the variables set in the CONFIGURATION
+section.
+
+
+=head2 AUTHOR
+
+=head2 AUTHOR
+
+(C) 2000-2003 Pat Deegan, Psychogenic.com
+
+You may reach me through the contact info at http://www.psychogenic.com
+
+LICENSE
+
+    txttopvf, part of the VOCP voice messaging system.
+    Copyright (C) 2002 Patrick Deegan, Psychogenic.com
+	All rights reserved.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+=cut
+
+my $txt2wavProg;
+
+###################### CONFIGURATION ##############################
+
+### If you've installed the festival speech synthesis engine
+### and would like to enable TTS functionality, uncomment (and
+### verify) the line below
+$txt2wavProg = '/path/to/bin/text2wave';
+
+my $wav2pvfProg = "/usr/local/bin/wavtopvf"; # Use full path to 'wavtopvf' executable
+
+
+my $tmpDir = '/tmp';
+
+
+################### END CONFIGURATION ###############################
+
+
+VOCP::Util::error("txttopvf: You MUST first configure the text2wave program in $0")
+	unless ($txt2wavProg);
+
+
+############ Security environment #############################
+
+$ENV{'ENV'} = '';
+$ENV{'PATH'} = '/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin';
+$ENV{'CDPATH'} = '';
+$ENV{'BASH_ENV'}="";
+
+unless (-e $txt2wavProg && -x $txt2wavProg)
+{
+	VOCP::Util::error("txttopvf: Can't find or can't execute text2wave program '$txt2wavProg'");
+}
+
+unless (-e $wav2pvfProg && -x $wav2pvfProg)
+{
+	VOCP::Util::error("txttopvf: Can't find or can't execute wavtopvf program '$wav2pvfProg'");
+}
+
+
+my $FilePathRegex = '[\w\d\/\.\_\-]+';
+# Get command line args
+my $txtFile = $ARGV[0] || die "Must pass a TXT file to convert to $0";
+my $outputFile = $ARGV[1] ;
+
+
+
+$VOCP::Util::Die_on_error = 0;
+
+{
+
+	if ($txtFile !~ m|^($FilePathRegex)$|)
+	{
+		VOCP::Util::error("txttopvf: Strange path for txt file '$txtFile'", 1);
+	}
+	$txtFile = $1; # untaint
+	
+	VOCP::Util::error("txttopvf: Please pass FULL path filenames to txttopvf ('$txtFile' invalid)", 2)
+		unless ($txtFile =~ m|^/|);
+		
+	
+	if  ($outputFile)
+	{
+		if ($outputFile !~ m|^($FilePathRegex)$|)
+		{
+			VOCP::Util::error("txttopvf: Strange path for output file '$outputFile'", 3);
+		}
+		$outputFile = $1; # untaint
+		
+		VOCP::Util::error("txttopvf: Please pass FULL path filenames to txttopvf ('$outputFile' invalid)", 4)
+			unless ($outputFile =~ m|^/|);
+			
+		if (-e $outputFile)
+		{
+			VOCP::Util::error("txttopvf: '$outputFile' - already exists, will not overwrite", 6);
+		}
+	}
+	
+	
+	
+	unless (-e $txtFile && -r $txtFile)
+	{
+		VOCP::Util::error("txttopvf: '$txtFile' - does not exist or cannot read", 5);
+	}
+	
+	
+	
+	require Fcntl unless defined &Fcntl::O_RDWR;
+	
+	my $outputPvfFh;
+	my $fail;
+	
+	
+	if ($outputFile)
+	{
+		my $oldumask = umask(0077);
+		$outputPvfFh = FileHandle->new();
+		VOCP::Util::error("txttopvf: could not do an excl creat sysopen of '$outputFile' - Aborting", 7)
+			unless ($outputPvfFh->open($outputFile, Fcntl::O_RDWR()|Fcntl::O_CREAT()|Fcntl::O_EXCL()));
+		
+		umask($oldumask);
+	}
+	
+	my @chars = ( "A" .. "Z", "a" .. "z", 0 .. 9);
+	my ($tempWaveFh, $tempWavName) = VOCP::Util::safeTempFile($outputFile || "$tmpDir/txttopvf");
+	
+	unless ($tempWaveFh && $tempWavName)
+	{
+		unlink ($outputFile);
+		$outputPvfFh->close();
+		
+		VOCP::Util::error("txttopvf: failed to open a secure tempfile for '$outputFile'", 8);
+	}
+	
+	my $txtToWavFh = VOCP::PipeHandle->new();
+	if (! $txtToWavFh->open("$txt2wavProg $txtFile 2>/dev/null |"))
+	{
+		
+		unlink ($outputFile);
+		$outputPvfFh->close();
+		unlink($tempWavName);
+		$tempWaveFh->close();
+		VOCP::Util::error("txttopvf: Could not open '$txt2wavProg $txtFile' for read", 9);
+	}
+	
+	$txtToWavFh->autoflush();
+	my $begun = 0;
+	my $wavContents;
+	
+	while (my $wavline = $txtToWavFh->getline())
+	{
+		if ($begun)
+		{
+			$wavContents .= $wavline;
+		} else {
+			if ($wavline =~ /RIFF/)
+			{
+				$wavContents .= $wavline;
+				$begun=1;
+			}	
+		}
+	}
+	
+	$tempWaveFh->autoflush();
+	$tempWaveFh->print($wavContents);
+	
+	my $wavToPvfFh = VOCP::PipeHandle->new();
+	if (! $wavToPvfFh->open("$wav2pvfProg $tempWavName |"))
+	{
+		VOCP::Util::error("txttopvf: Could not open '$wav2pvfProg $tempWavName' for read", 10);
+	}
+	
+	
+	
+	my $pvfContents = join('', $wavToPvfFh->getlines());
+	$wavToPvfFh->close();
+	
+	unlink ($tempWavName);
+	$tempWaveFh->close();
+	
+	if ($outputPvfFh)
+	{
+		$outputPvfFh->autoflush();
+		$outputPvfFh->print($pvfContents);
+		$outputPvfFh->close();
+	} else {
+		print STDOUT $pvfContents;
+	}
+	
+	exit(0);
+}
+	

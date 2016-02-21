@@ -1,0 +1,66 @@
+###################################################
+###                                             ###
+###                                             ###
+###  VOCP Call Center                           ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+The VOCP call center is meant to be an "always on" call monitor and to give quick access to other VOCP GUIs and your call log.  It will pop-up when a call comes in, displaying caller id information if available and provides shortcuts to xVOCP (message retrieval) and VOCPhax (fax center).
+
+
+
+###################################################
+###                   Usage                     ###
+###################################################
+
+
+Launch the call center in the background:
+
+$ /usr/local/vocp/bin/callcenter.pl &
+
+The program will start minimized (unless you edit it and set $StartMinimized to 0).
+
+When a call comes in and vgetty picks up, the call center window will popup with some information relative to the incomming call (caller id info will be present if available).
+
+
+You may use the call center to launch xVOCP or VOCPhax or view the call log, using the buttons contained within the interface.
+
+If your are in the midst of a conversation and wish to transfer the call in progress to the voicemail system, use the "VOCP pickup" button (image of a telephone that is off hook)- once the system has started, you may hang up and the caller will navigate the system as if it had answered when the call came in.  As this function must send a signal to the vgetty process, if you wish to enable it you must set the xfer_to_vocp executable to run setuid as the same user as vgetty (normally root).  To do so, simply
+
+#  chmod 4755 /usr/local/vocp/bin/xfer_to_vocp
+
+and the function will be available from the call center.
+
+The call_log file (normally /var/log/vocp-calls.log) contains information about incomming calls and messages.  You can view the contents of this file using the "call log" button.  The call log may eventually become large and annoying to peruse.  To avoid this problem, you can set up log rotation.
+
+Create the file /etc/logrotate.d/vocp-calls and enter:
+
+/var/log/vocp-calls.log {
+    create 0644 root vocp
+    rotate 4
+    missingok
+    nocompress
+}
+
+That's it.  For more options, have a look at the logrotate manpage.
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

@@ -1,0 +1,20 @@
+###################################################
+###                                             ###
+###  VOCPweb Remote Message Retrieval           ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+VOCPweb is currently being rewritten.  You will find the older version of
+VOCPweb within /usr/local/vocp and documentation on the
+http://www.VOCPsystem.com website.
+
+See the /usr/local/vocp/vocpweb README and INSTALL files for now.
+
+The new and improved version of VOCPweb should be available with the release
+of VOCP 0.9.1 or .2
+
+Thanks,
+	Pat Deegan

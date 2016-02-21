@@ -1,0 +1,178 @@
+# VOCP Box Configuration file
+#
+#
+# LICENSE
+#
+#    boxes.conf, box config file of the VOCP voice messaging system.
+#    Copyright (C) 2000 Patrick Deegan
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+# All configuration lines start with a character, are seperated by 
+# 'whitespaces' (space, tab) and are on a single line.
+# Empty lines and lines starting with '#' are ignored.
+# Some info is included in this file but make sure you read the docs.
+
+### number message, type and (sometimes) password are *REQUIRED* ###
+#
+# Definitions of fields:
+# number: the box/extension number, e.g. 023
+#
+# message: the file played when accessing this box
+# note that this is _relative_ to the messagedir in
+# voxbox.conf
+#
+# type: indicates the type of box.
+# Acceptable values are: 'mail', 'pager', 'command' and 'none'.
+#
+# password: password used to login and retrieve messages.  This field
+# is also REQUIRED if is_mailbox is true (mail drops need a password, 
+# messages that don't accept mail do not).  Valid entries are composed
+# of a series of digits or the word 'none' (only for is_mailbox = 0).
+#
+# owner:  which local user may read the file. Use /etc/passwd usernames.
+#
+# email:  if an email address is specified, the system will notify
+# it when a message is recieved in the box.  The field is optional, use
+# 'none' (without quotes) if you wish to add a branch field without having
+# email notification.
+#
+# branch: comma seperated list of boxes this box branches to.  Eg:
+# 000 says "press 1 for english 2 for french".  Dialing 1 brings you to
+# the first box in the list while dialing 2 sends you to the second box.
+# You can add many boxes in your menu, just don't put any spaces in the list
+# e.g.: 012,154,011,032,055 is a valid branch (state choices 1-5 in the message)
+# You may now use an X=YYY notation, where X is the key to press for box YYY.
+# This lets you create branches like 012,154,9=001 so pressing 9 will lead to
+# box 001.
+#
+# box config lines of form:
+# See explanation below for details. 
+
+########################### BOXES ###########################
+
+# All these boxes are owned by ROOT because I don't know
+# the usernames on your system... you really should change
+# these /especially the command boxes/ to someone else.
+
+#Form:
+# 'box' num	message 	type 	password owner  branch	email	autojump  restricted
+
+# The root box - always number 001
+box	001	root.rmd	none	none	root	011,012,300
+
+# Second level instructions - in a specific language	
+box	011	english.rmd	none	none	root	100,101,9=001
+box	012	french.rmd	none	none	root	100,101,9=001
+
+# Lead to the same boxes (a mail and a pager)
+box	100	none		mail	2857	root	none	root
+box	101	system/pager.rmd	pager	none	root	none	you@yourisp.com
+
+# A restricted box
+box	200	root.rmd	mail	200	root	none	none	none	200
+
+
+# Some command shell boxes
+# See the commands available in these boxes below.
+box	600	none		command	600	root
+box	666	none		command	666	root
+
+######### EXPERIMENTAL ##########
+### FAX ON DEMAND BOX - SEE CONFIG BELOW ###########
+#box 300 none	faxondemand
+
+
+########################## COMMANDS ##########################
+
+# command set the valid entries and associated commands for 'command' type
+# boxes.  command type mailboxes MUST have a password set.
+#
+# Command statements must be placed /after/ box creation
+# because of validation.
+#
+# All entries must be on a single line.  For complex commands, create a script,
+# chmod so that it is executable and place it in commanddir (set in the main
+# conf file).
+#
+# The format of the lines is:
+# 'command' box selection input return run
+#
+# All lines begin with the keyword 'command'.
+#
+# box is the (command type) box this statement is associated with.  The option will
+# be available in this box's command shell.
+#
+# selection is the dtmf the user is to enter while in the command shell to run the associated
+# command.
+#
+# input.  If you need to get user input for this command, add the type here or use 'none'.
+# Valid types are 'raw' and 'text'.  'raw' input will add the exact sequence of dtmf digits
+# entered at the prompt by the user to the end of the paramater list of the program to run.
+# The 'text' type will take that raw input and translate it to text (e.g. '21' = 'a') -> please 
+# see the documentation for more info on this.  
+#
+# return.  The return value read to the user: must be 'exit', 'output' or 'file'.  If 'exit', will
+# read exit status of the program to user, if 'output' will read the (numerical) output to
+# user, which may be multi-lined. When using the 'file' return value, the command executed is 
+# expected to output one or more lines, each containing the _full path_ to a sound file
+# preferably an rmd file created for your type of modem (if it is another format, the program
+# will attempt to Do the Right Thing by using the rmd* settings from vocp.conf).
+# 
+# run: the executable to run upon selection of choice.  The path to these programs is 
+# relative to the commanddir.  The (numeric) returned value will be read
+# back to the user by the system.
+#
+#'command' box selection input	return run 
+
+# Command shell 600:
+# Selection 100 in box 600 expects TEXT input (see the docs)!
+command	600	100	 text	output	ip.pl 
+# Sel 150 reads you the ip of eth0
+command	600	150	 none	output	ip.pl eth0
+# Sel 250 reads whatever numbers you enter as input
+command	600	250	 raw	output	echo
+
+
+# Command shell 666:
+# Selection 100 in box 666 reads you the current time
+command	666	100	 none	output	date.pl
+# While 200 just reads you the exit status code 
+command 666	200	 none	exit	date.pl
+#
+#
+#
+#
+########### EXPERIMENTAL ###############
+#### FAX ON DEMAND #####################
+### Fax on demand boxes allow users to call in, go through the menu and select a fax
+### they wish to receive.  The advantage of fax-on-demand over faxback is that the 
+### caller is responsible for dialing in and associated charges (and there's less
+### risk of some 31337 phreaker causing your box to start faxing some third party).
+###
+### The parameters for the faxondemand boxes are:
+### 'faxondemand' box fileToFax
+###
+### Where 'faxondemand' is a keyword indicating the type of configuration line.
+### 'box' is the configured faxondemand box number
+### 'fileToFax' is the file to send to the caller
+###
+### 'faxondemand' box fileToFax
+
+# faxondemand 300 /usr/local/vocp/testfax.g3
+
+
+#
+# End of file.

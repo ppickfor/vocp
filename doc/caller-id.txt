@@ -1,0 +1,312 @@
+###################################################
+###                                             ###
+###                                             ###
+###  VOCP and Caller ID (CID)                   ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Whether it's to impress your clients, make life easy for your dad, avoid telemarketers or leave a customized greeting to your favorite stalker, VOCP allows you to direct calls from specific locations to different boxes.  You can also use the VOCP Call Center to monitor incoming calls for CID information (see the callcenter.txt file for details).
+
+- Requirements
+- Configuration
+	- Modem
+	- Call Center
+	- CID filtering
+	  - Setup
+	  - Regular expressions
+	  - Notes on cid-filter.conf
+	  - Testing your filters
+
+
+###################################################
+###                Requirements                 ###
+###################################################
+
+To use VOCP caller-id filtering, you need a few things besides the default VOCP installation.  These are:
+
+- Caller ID service from the telco (you need to pay to play)
+- A modem which recognizes CID information
+- A customized cid-filter.conf file
+
+If you have the first two, you're probably already in business but it is possible you might need to set up a special init string with m/vgetty.
+
+Assuming you have setup caller id with your phone company and have gotten vgetty/VOCP working, you can check the /var/log/vgetty.ttySX log file to see if caller id is being reported by your modem.  Try,
+
+grep CALLER /var/log/vgetty.ttySX
+
+replacing ttySX with the appropriate ttyS[0123] for your setup.  If you can see phone numbers after CALLER_ID=, you're all set - else see the Modem section in Configuration, below.
+
+
+###################################################
+###               Configuration                 ###
+###################################################
+
+
+====================
+==     Modem      ==
+====================
+
+Does your modem support caller id?  We can find out if the chipset that it uses does support CND by following these instructions (assuming your modem is on /dev/ttyS1 - change to appropriate ttySX).  Please note that, even if the chipset used by your modem does understand caller id, it is possible that your modem will not report the information.  This is due to the fact that, in order to intercept the CID info that is sent by the telco between the 1st and 2nd ring bursts (in north america, may be sent at different times elsewhere) your modem must "listen in" without actually taking the phone off hook - this requires a bit of special hardware which many manufacturers omit in order to save a dollar or two.
+
+
+===> Already supported <===
+
+Start by making sure we're logging at a high level by editing the vgetty voice.conf file and setting 'voice_log_level' to 4 or 5 (remember to change this back later or the log file will become huge).
+
+As root, empty the log file:
+
+ # echo "" > /var/log/vgetty.ttyS1
+
+Now, restart vgetty.  Either:
+
+- find and kill the process manually
+or
+- run :
+ # ps waux | grep /[v]getty | awk '{print $2}' | xargs kill
+
+Have a friend call your VOCP-enabled line.  After the call has picked up, do a 
+
+ $ grep CALLER_ID /var/log/vgetty.ttyS1
+
+If you see you're pal's number, all is well and you can skip the rest of the == Modem == section.
+
+===> No CID info in log <===
+
+If you're still reading this, it's because you're modem didn't show the CID info.  There are two possibilies:
+- Your modem doesn't support CID
+- Your modem wasn't initialized correctly
+
+There isn't much you can do in the first case, except get another modem.
+
+In the second case, get your modem manufacturer's documentation and look for anything related to CID, "caller id" or CND.  You are searching for the AT command that will enable CID.  Chances are that it will be something like AT#CID, AT+VCID or something similar. Be sure to take a look at the doc/modems.txt file for more info about interacting with your modem and querying for capabilities.
+
+If you don't have the modem docs, you can still do a little detective work to find the appropriate init string.  Start with http://groups.google.com 
+
+You can also use minicom to see if you can guess the correct code (see the modems.txt file for a look a troubleshooting your modem).  As root, start minicom:
+
+# minicom -s
+
+Go down to "serial port setup", hit <ENTER>.  Press A to modify the device, change it to your modem's port (eg /dev/ttyS1) press <ENTER><ENTER>. Go down to "Exit" (not "Exit from Minicom"), press <ENTER>.
+
+You are now talking to your modem.  Enter:
+
+AT#CID=?   	(U.S.Robotics, Texas Instruments, Rockwell compatible modems)
+AT+VCID=?  	(IS-101 modems, Lucent LT, MultiTech, IDC, Cirrus Logic...)
+AT#CC1		(Aspen modems, Cirrus Logic, Motorola Voice Surfer, Phoebe)
+AT*ID1		(Motorola)
+AT%CCID=1	(Practical Peripherals)
+ATS40.2=1
+ATS41.6=1
+ATS42.2=1 	(ZyXEL)
+AT#CLS=8#CID=1	(?)
+???
+
+
+Ignore the ERROR responses.  If you get an OK or a response like:
+(0-2)
+or
+0,1,2
+
+You've have found the AT command to enable caller id! Assuming AT+VCID is the command that worked, you can do:
+
+AT+VCID?
+
+To see the current setting.  
+
+AT+VCID=1
+
+Should respond with OK.  
+
+AT+VCID=2
+
+Should also say ok.  0 is normally CID OFF, 1 is normally formatted caller report and 2 is unformatted caller report.
+
+
+You should now try it out manually.  Stop m/vgetty, start minicom and issue the appropriate AT command to enable caller id.  Await a call.  When the phone rings you will see something like:
+
+RING
+
+or
+ 
+.R
+
+If caller id is enables and working, you should have some extra stuff show up between the 1st and 2nd rings.
+
+
+Once you have determined the AT command to use to enable your modem's caller id feature and know that it works, add a post initialization for  your modem in mgetty's mgetty.config file.  Here is what mine looks like:
+
+port ttyS1
+post-init-chat "" AT#CID=1 OK
+
+Of course, you should set the command that your modem uses if it is something other the #CID (eg AT+VCID=1).
+
+You should be done now... kill vgetty:
+
+ # ps waux | grep /[v]getty | awk '{print $2}' | xargs kill
+
+and take a look at the output in /var/log/vgetty.ttyS1.  You should see something like:
+
+12/18 01:35:31 yS1  send: \d\d\d+++\d\d\dAT S7=45 S0=0 L1 V1 X4 &c1 E1 Q0[0d]
+12/18 01:35:34 yS1  waiting for ``OK''
+12/18 01:35:34 yS1   got: [0d][0a]OK ** found **
+12/18 01:35:34 yS1  send: AT#CID=1[0d]
+12/18 01:35:34 yS1  waiting for ``OK''
+12/18 01:35:34 yS1   got: [0d][0a]AT#CID=1[0d][0d][0a]OK ** found **
+
+Looks good.  Bug someone else so they'll call you up and see if CID info is found in the log.
+
+
+When done, don't forget to tone down the logging by resetting 'voice_log_level' in voice.conf.  
+
+
+====================
+==  Call Center   ==
+====================
+
+In order to have the CID info logged /before/ VOCP actually picks up the phone, edit the /etc/vocp/vocp.conf and change
+
+log_incoming	1
+
+to 
+
+log_incoming	0
+
+This tells VOCP that something else will be handling incoming call logging.  Now, edit mgetty's mgetty.config file and add the line:
+
+cnd-program /usr/local/vocp/bin/cnd-logger.pl
+
+
+You are now done with the CID setup.  If all you are interested in is seeing who is calling you, just launch the VOCP Call Center
+
+$ /usr/local/vocp/bin/callcenter.pl &
+
+and sit tight.  The window will popup as calls come in (sometime after the first ring), displaying the caller ID information.  Have a look at the callcenter.txt file while you wait.
+
+You can also launch the callcenter from another computer, for instance while you are at work, to see who is calling in real time.  Just run
+
+ssh -C yourusername@yourvocphostname /usr/local/vocp/bin/callcenter
+
+This will allow you to login to your remote host and launch the callcenter program.  The display will be forwarded to your local X server.  
+
+
+
+
+====================
+==   CID Filters  ==
+====================
+
+You can setup VOCP so that calls from a given number start at some arbitrary box and message, instead of the default root box.
+
+To direct incoming calls to different boxes based on the CID, you need to do two things.  Edit /etc/vocp/vocp.conf and make sure the callid_filter parameter is uncommented (no '#' at the start of the line) and pointing to the correct file:
+
+  #### Caller ID Filter ####
+  # If you have caller id and your modem groks it and you'd like
+  # to shunt particular callers to specific boxes (instead of starting
+  # at the root, 001, box), uncomment this line and edit the file
+  # it points to
+  callid_filter /etc/vocp/cid-filter.conf
+
+Now, fire up vi (or emacs, nedit or whatever) and edit /etc/vocp/cid-filter.conf
+
+This file has a format similar to vocp.conf:
+
+# Lines starting with '#' are ignored
+REGEX WHITESPACE[S] BOXNUM <NEWLINE>
+
+  REGEX is a regular expression that will be checked against caller id info.
+  WHITESPACE[S] is 1 or more (space|tab)
+  BOXNUM is a sequence of digits that indicates the box number to jump 
+  to if a match is made.
+
+Replace REGEX on each line with some Perl magic - a regular expression that will match the incoming phone number.  Here is a simple example regexp:
+
+555[\s\-]*1212
+
+
+==> Regular Expressions <==
+
+
+Notice that stuff in the [square brackets]?  If you're new to Perl and regular expressions, [\s\-]* simply means "0 or more spaces and/or dashes" (that '\-' isn't strictly required, you just could use '-' but it's a good habit to escape dashes unless you mean to use them for a range of values).  So
+
+ 5551212
+ 555-1212
+and
+ 555 1212
+
+would all match this regex.  If I know that my phone company always sends the caller id info in the same way, I can simplify the regex.  For instance, to match '555-1212', I can just use:
+
+555\-1212
+
+Take note of the '\-' to match '-'; this is because the '-' character is special in regexland, so it must be escaped to actually mean '-'.
+
+Supposing I would like calls from this number to start off directly in box 300, the cid-filter.conf line would be:
+
+555[\s\-]*1212		300
+
+That's it.  The hardest part is figuring out your regular expressions (and it's not that hard, really).  The advantage of using regexes is that they can be very powerful.  Here's one:
+
+(^\s*9\d9|555[\s\-]*1234|555[\s\-]*9876)     700
+
+This expressions says that all calls from:
+
+  555-1234
+  555-9876
+  and all calls from the 9X9 area codes (909, 919, 929, ...)
+
+shall be started in box 700.  Take a look at http://www.english.uga.edu/humcomp/perl/regex2a.html or do a 'perldoc perlfaq6' to learn about regular expressions.
+
+
+==> Notes on cid-filter.conf <==
+
+The cid-filter.conf file is documented, so take a peek inside.  The important points are:
+
+- Get your regexes right.  They will depend on the format for numbers as reported by your telco.
+- Keep to the "REGEXP  BOXNUM" format
+- Order your filters from most specific to least specific
+
+That last point is important.  If you have these lines in cid-filter.conf
+
+^514				600
+
+514[\s\-]*555[\s\-]*1212	200
+
+You are saying "All calls from the 514 area code go to 600, calls from 514-555-1212 go to 200" - this won't work, because calls from 514-555-1212 will match the "All calls from 514 area code" first and go straight to box 600.  The correct config in this case would be:
+
+514[\s\-]*555[\s\-]*1212	200
+
+^514				600
+
+
+==> Testing your filters <==
+
+
+After you've set up a few filters, it's time to testtesttest.
+
+You won't need to ask everybody to call you up in order to test that your CID filters are working - just use VOCPLocal.  See the vocplocal.txt file for details on using the local VOCP interface, which allows you to interact with your voice system using your keyboard and speakers.
+
+The important part, in our case, is that you can edit the /usr/local/vocp/bin/vocplocal.pl file and set the $CALLER_ID variable to any value you like.  Then you just launch vocplocal.pl to see if your filter is doing what you expect.  Make sure you check out the doc/vocplocal.txt file.
+
+
+
+Happy philtering!
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

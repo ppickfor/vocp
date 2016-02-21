@@ -1,0 +1,210 @@
+###################################################
+###                                             ###
+###                                             ###
+###  Installing VOCP                            ###
+###                                             ###
+###  (C) 2000-2003 Patrick Deegan,              ###
+###  Psychogenic.com                            ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+Whether you are running a small business, need to control a server farm when you don't have internet access or just want to keep your voice mail separate from other family members', having your very own voice messaging system can help you out.  If you've got a Linux box and a voice modem handy, VOCP is the answer.
+
+This document describes the installation procedure for the VOCP voice messaging system.  Before using VOCP, you must ensure that vgetty (the mgetty+sendfax voice extension) is properly installed and configured.  See the documents relating to vgetty if this hasn't already been done.
+
+
+###################################################
+###               Introduction                  ###
+###################################################
+
+
+This program is distributed under the terms and conditions of the GNU GPL - see the LICENSE file for details.
+
+
+There are two steps to installing VOCP
+	installation proper
+	configuration
+
+** For the program to work you need a working vgetty installed on your system.
+** Vgetty must also be configured to run vocp as the call_program, so make
+** sure you read the docs on vgetty!!
+
+Remember that all the docs and the latest versions are available at http://www.VOCPsystem.com !
+
+###################################################
+###               Installation                  ###
+###################################################
+
+IF YOU ARE UPGRADING: Read the doc/upgrading.txt HOWTO instead of/in addition to this.
+
+
+=====================
+===  Sound files  ===
+=====================
+
+One of the major functions of the install script is converting all the sound files (like numbers, days and such) from Portable Voice Format (pvf) to the Raw Modem Data (rmd) file that is appropriate for your modem.
+  
+You will be asked for the location of the pvftormd program (comes with vgetty) and the options to pass to it.  These options determine how the pvf files are converted to rmd files: if you use the wrong ones, your modem won't be able to play any of them.  The possible options are available by doing:
+
+pvftormp -L
+
+See the section on pvftormd in the vgetty section of the VOCP documentation for a lot more info.
+
+
+=====================
+===  Requirements ===
+=====================
+
+Listed below are the VOCP requirements - you may wish to have a look at the doc/requirements.txt file for a more info on the 3rd party modules and programs required for various functionality (like Text-to-speech and ogg/mp3 encoding).
+
+
+===> General <===
+You should be running Linux or a similar Un*x based box and have mgetty+sendfax/vgetty installed and setup to work with your modem.  You must have a recent version of Perl.
+
+You will need to have the XFree86 header files (installed with the XFree86 source or the XFree86-devel-X.X.X rpm) to install the Tk and Tk::JPEG modules (see below).  You will need a working and configured sound card to use the xVOCP message retrieval GUI.  You need a modem that supports CID to use Caller-ID functions.
+
+
+===> Perl Modules <===
+
+A number of Perl modules are now used by VOCP.  Some are absolute requirements while others are optional and only needed for certain parts of VOCP.  You can either install the modules manually, using "# perl -MCPAN -e 'install Module::Name'", or you may have them installed automatically through the install script.  The modules are:
+
+ REQUIRED:
+  
+  Modem::Vgetty
+  XML::Mini
+  
+ OPTIONAL:
+  Module				Used By
+  Audio::DSP				xVOCP GUI
+  Tk					CallCenter, xVOCP, VOCPhax GUIs
+  Tk::JPEG				CallCenter, xVOCP, VOCPhax GUIs
+  Crypt::CBC				VOCPweb
+  Crypt::Blowfish			VOCPweb
+  MIME::Parser				email2vm (Email to VoiceMail converter)
+
+
+If you plan to use the graphical interfaces and if you will be installing Perl Tk, you must login to the host machine as root and launch X (for the various Tk tests to work).
+
+
+Run the install script as root:
+
+# cd /path/to/vocp-X.X/
+# perl ./install_vocp.pl
+
+
+If some of the VOCP support modules are not found on the system, you will be asked if you wish to install them automatically using CPAN. Say 'y' to do so.  If you've never used cpan, you will probably need to configure it before the installation proceeds: just answer the questions cpan asks.  
+
+Also, if you are installing the Tk or Tk::JPEG module, you need to be logged in as root and have X running in order to allow the Tk and Tk::JPEG tests to succeed.  In addition, to install Perl Tk, you may need to install the XFree86 headers (XFree86-devel-4.X.X.rpm if you use RPMs) in order to make the X11/Xlib.h file available to Tk.
+
+
+
+===> Manual installation of modules <===
+
+Fear not, if anything goes wrong you can either try try again or do it manually.  The modules you will need are listed above.
+
+Audio::DSP is also required but I was having lots of trouble with hissing and pops from Audio::DSP.  I sent a patch to the author but never got a response so, in the mean time, the patched version is included and will be installed by default.
+
+You can install these modules using CPAN.  Here's how you would install the Modem::Vgetty module:
+
+# perl -MCPAN -e 'install Modem::Vgetty'
+
+and so on for Tk, Tk::JPEG etc. (must be run as root)
+
+
+
+===> Sound file problems <===
+
+
+If you are getting errors because of the 8000Hz sample rate of the sound files,
+eg
+/usr/bin/pvftormd: Unsupported sample speed (8000)
+/usr/bin/pvftormd: Rockwell modems only support 7200 samples
+use the included modify_sample_rate.pl script to modify the sample rate of the
+files. Do:
+perl modify_sample_rate.pl XXXX
+where XXXX is the required sample rate (e.g. 7200). Then run 
+
+# perl install_vocp.pl
+
+again.
+
+
+
+===> Installation Complete <===
+
+
+When the installer has finished, you will find the main vocp program and configuration files in the /etc/vocp directory.  The VOCP support programs (xVOCP, VOCPhax, etc.), documentation and VOCPweb will be located under /usr/local/vocp.
+
+
+
+###################################################
+###              Configuration                  ###
+###################################################
+
+You now need to configure the system to your tastes but you should have a working system, with voice mail, pager and command shells!  
+
+==> General <==
+
+As root, edit the 
+/etc/vocp/vocp.conf 
+file and follow the instructions within.
+
+==> IVR Boxes <==
+
+Have a good look in the doc/ directory for configuration instructions and help (box-types.txt and boxconf.txt should be helpful). Here is the jist of it:
+
+As root, start the boxconf GUI
+
+# /usr/local/vocp/bin/boxconf.pl
+
+Create/edit and save. You will need to verify and move the saved box configuration files - so read doc/boxconf.txt!
+
+
+If you don't have X installed, or didn't install Perl Tk, you can still do it all manually.  Read the doc/box-config-file.txt HowTo to learn all about the new XML box config format.
+
+
+==> VOCP web <==
+
+If you wish to use the VOCPweb interface, please see the README and INSTALL files in the vocpweb subdir or check out the website.
+
+
+*** INSTALLED COMPONENTS  ***
+What gets installed on your system is as follows:
+
+The perl program and accompanying module
+	/usr/local/vocp/bin/vocp.pl
+
+The configuration files
+	/etc/vocp/vocp.conf
+	/etc/vocp/boxes.conf
+	/etc/vocp/boxes.conf.shadow
+	and a few others in /etc/vocp
+
+The sound files are all under
+	/var/spool/voice/messages/
+
+Example scripts used in a command shell are under
+	/var/spool/voice/commands/
+
+The VOCP perl modules are installed in a system dependant location
+(eg /usr/lib/perl5/site_perl/5.6.0).
+
+Finally, a number of components are installed under /usr/local/vocp/.  These include
+the xvocp message GUI, the boxconf GUI, custom pvf file converters (eg pvftomp3), and a few others.
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+EOF

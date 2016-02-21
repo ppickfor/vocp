@@ -1,0 +1,40 @@
+VOCP Change log
+
+05/01/2003, 17:36 EST: VOCP 0.9.3 Release.  New box attributes including name, restrictFrom and restrictLogin from.  New and improved
+command shells, with selection listings available through TTS.  Whole new DTMF input algorithm; the numDigits box attribute was created and the code for single digit input was changed to accomodate (arbitrary) fixed length input.  BoxConf updated to reflect new box attribs, bug in command shell edits (which deleted all selections) fixed.  Faxing is now all good.
+
+16/01/2003, 10:30 EDT: VOCP 0.9.2 is the first of the 0.9 series destined for public consumption (previous versions were considered pre-release and only announced to mailing list members). New in 0.9.2 - bug fixes surrounding fax reception - use of vgetty autostop feature to reduce chance on nested commands and increase efficiency - major redesign of Device::Vgetty input algo - final version of the rootbox_DEVICE setting.
+
+05/01/2003, 06:30 EDT: VOCP 0.9.0 ready, new site completed and being uploaded - hooray for release day!
+
+11/12/2002, 03:33 EST: VOCP 0.9.0 almost ready for release.  Bug fixes, changes to installer, 100K of documentation created, VOCP Call Center GUI, full fax support (fax-on-demand, VOCPhax).
+
+28/10/2002, 01:02 EDT: Mucho changes.  Whole new VOCP module architecture.  Text-to-speech support, email to voicemail conversion, script boxes, message retrieval and box configuration GUIs, XML based box config. But wait, there's more...
+
+15/06/2002, 18:04 EDT: Small bug fix to VOCP.pm - added Michel Dansereau's fix to the MIME64_Encode function (line 4323)
+ in order to account for line length of encoded attachements
+
+27/08/2001, 18:50 PST:  Bug fix, bug fix.  After a (really) long while, fixed a few bugs, removed some changes that had been inserted but not tested properly.  Added the message attached in email notif feature and the 'file' type of return for command shells.
+======
+29/11/2000, 08h00 EDT: Realized I need CVS :)  VOCP 0.7.0 was released without the code portions relative to 
+			default_branch_to - Added them.  Also fixed a bug concerning preservation of old conf
+			files in the install script (thinking of moving to the classic perl Makefile.PL...)
+
+24/11/2000, 03h00 EDT: Passwords may now be either text or numeric.  Also, they may be stored in the boxes.conf file
+                        in crypted format (a cryptpass.pl script is included to aid users in crypting box passwords).
+
+22/11/2000, 18h00 EDT: VOCPweb completed testing, ready for release.
+
+15/11/2000, 01h00 EDT: Branch entry in boxes.conf file may now use the X=YYY format to set key-box combos (X is the key and
+                        YYY is the boxnumber).
+
+29/10/2000, 03h00 EDT: Bug submitted by Corwin fixed: The root box (001) may now be used as a mail, pager or dead end
+                        box without the waiting for user input (modifictaions to vocp.pl).  The documentation was also
+                        updated and now mirrors the web site (html documents) - changes were made to install_vocp.pl to
+                        reflect this. VOCP version 0.6.2
+
+21/10/2000, 20h00 EDT: Modified install_vocp.pl to chmod 1777 the incomming dir, so that the messages.pl
+                        script will be able to delete messages while running as the user.
+
+21/10/2000, 5h00 EDT: Public Release of VOCP
+

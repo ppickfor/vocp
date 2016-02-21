@@ -1,0 +1,150 @@
+###################################################
+###                                             ###
+###                boxconf.pl                   ###
+###                                             ###
+###  VOCP Box Configuration interface           ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+boxconf presents a graphical user interface used to administer the VOCP system box configuration.  It allows the admin to create, edit and generate the XML box configuration files used by VOCP.  For more details on the produced configuration file format, see the box-config-file.txt document.
+
+
+- Requirements
+- Usage
+	- New Box
+	- Edit Box
+	- Delete Box
+	- Notes on Command shells
+	- Saving your configuration (important)
+- Testing your configuration
+- Conclusion
+
+###################################################
+###                 Requirements                ###
+###################################################
+
+If you've installed VOCP you should already have all the required modules to run VOCP boxconf.  boxconf.pl requires:
+  - A recent version of Perl 5
+  - VOCP and accompanying modules (XML::Mini, VOCP::XXX)
+  - Perl Tk 
+
+
+
+
+###################################################
+###                    Usage                    ###
+###################################################
+
+Using VOCP boxconf should be rather straight forward.  Launch the program as root:
+
+# /usr/local/vocp/bin/boxconf.pl
+
+When launched, VOCP boxconf will read in the current configuration from /etc/vocp/boxes.conf and display a list of boxes, showing their number, type, owner, associated message and branch if available.
+
+None of your modifications are saved until you explicitly use the "Save" button or the File->Save menu item.  To save, select a filename - boxconf will produce 2 files:
+
+/path/to/examplename.conf
+/path/to/examplename.conf.shadow
+
+The .shadow file contains the actual passwords - this file must be set to mode 0640 and owned by user root and group vocp.  If you leave this file with an world readable mode, everyone on the system will be able to see the box passwords - this is especially bad if you enter the passwords unencrypted!
+
+
+
+===================
+===   New Box   ===
+===================
+
+To create a new box, use the "New Box..." button or select Edit->New Box from the menu.  A window will appear offering a selection of box types.  Select the type of box you wish to create (see the box-types.txt file for details) and click OK.
+
+  The window that appears will vary depending on the type of box selected.  It is possible that some of the configurable items that appear are irrelevant or not required for this type of box but all the required setting will be present. For instance, selecting a 'none' type box presents a window in which you may enter:
+  
+  - box number
+  - message
+  - branch
+  - autojump
+  - restricted
+  
+The only *required* items are either:
+- number and autojump
+OR
+- number and message
+
+However, you *may* set additional options, such as a branch or a restricted password or number+message+autojump.
+
+Which fields are present and which are required is box type dependent - the only field that is universally required is the box number.  If you've forgotten to read the box-types.txt file and want to know which fields are required, enter a number and click OK - the error message will indicate which fields are required.
+
+Note:  Box numbers should have 3 or more digits and must be unique.
+
+
+==================
+===  Edit Box  ===
+==================
+
+Double clicking on a box entry or selecting it and clicking the "Edit Box" button will open a window like that used to create the box originally.  You may edit the fields and click OK to modify the box configuration.
+
+
+====================
+===  Delete Box  ===
+====================
+
+Selecting a box and clicking the "Delete Box..." button or using the Edit->Delete Box menu item does just that - it will delete the box from the configuration.  Don't forget that your modifications are not saved until you explicitly request boxconf Save the new configuration.
+
+
+========================
+===  Command Shells  ===
+========================
+
+Command shells are somewhat different than other box types, since they are in effect "multi-leveled" - entering a command shell gives you a list of possible actions all within the command shell environment.
+
+To configure a command shell, create a command type box using "New Box..." as described above.  You will notice a new entry in the "Command boxes" list at the bottom of the VOCP boxconf interface.  Double-clicking the box number will open a new window that allows you to configure you command shell menu (the valid selections, which commands they shall run and how to convey command output to the caller).
+
+From this window, you may create, edit and delete valid commands for this shell. Using command shells can give you lots of power and control over the host system, so please make sure you read the command-shells.txt file before proceeding.
+
+###################################################
+###          Saving your configuration          ###
+###################################################
+
+When you're satisfied with your configuration, I suggest you save it somewhere other than directly overwritting the /etc/vocp/boxes.conf file and compare the new and old configs.  If it looks like everything was saved all right, mv the resulting boxes.conf and boxes.conf.shadow to /etc/mgetty+sendfax/vocp.
+
+DO NOT FORGET:
+
+xVOCP and many other programs will be using the pwcheck setgid wrapper to test the validity of passwords, so you must ensure that the boxes.conf.shadow file is:
+
+- owned by user root and group vocp or whichever name you set for the VOCP group (chown root:vocp /etc/vocp/boxes.conf.shadow)
+- mode 0640, -rw-r----- (chmod 0640 /etc/vocp/boxes.conf.shadow)
+
+
+
+###################################################
+###             Testing your config             ###
+###################################################
+
+
+When you've created a configuration that suits your needs, it is time to test test test.  You could run down to the corner public phone and spend a few quarters, or eat up minutes on your cell phone but a better way is to use your keyboard and speakers to talk to VOCP.  Vocplocal allows you to do this, see the vocplocal.txt file for details.
+
+
+###################################################
+###                  Conclusion                 ###
+###################################################
+
+The VOCP boxconf GUI is there to help you manage your VOCP configuration but, in keeping with Unix tradition, the configuration file is plain text and, although it uses XML, easy enough to create and edit manually. See the box-config-file.txt help file for details on the format used for configuration.
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF

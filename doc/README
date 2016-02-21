@@ -1,0 +1,98 @@
+VOCP docs README
+
+The doc directory contains (hopefully useful) information concerning the setup and use of the VOCP voice messaging system.  It is not 
+all inclusive (check http://VOCPsystem.com and the mailing list archives if you can't find what you're looking for) but should be 
+checked out before asking a question.
+
+- config
+- faxing
+- email
+- GUIs
+- text-to-speech
+- troubleshooting
+
+
+
+==================
+==    config    ==
+==================
+
+
+upgrading.txt - IMPORTANT info if you are upgrading from a previous version of VOCP.
+
+vgetty.txt - Install and setup the vgetty voice modem interface using this howto.
+
+boxconf.txt - The complete guide to configuring your VOCP system using the VOCP boxconf program.
+
+box-types.txt - There are now many box types available, this guide will help you understand them all.
+
+command-shells.txt - Learn how to create and use command shells to gain full control of your computer through a phone line.
+
+caller-id.txt - If you've got caller-id, this is the place to look to get it working and start directing calls based on CID information.
+
+box-config-file.txt - Describes the boxes.conf file format in detail.  This is *not* required reading if you just wish to use VOCP.
+
+
+==================
+==    faxing    ==
+==================
+
+faxes.txt - Sending and receiving faxes is now easy and fully supported.
+
+
+==================
+==     email    ==
+==================
+
+email-attachments.txt - Describes how to configure voice mail email attachments for the various supported formats.
+
+email-to-speech.txt - A howto for automatically converting email messages to voice mail speech messages.
+
+
+==================
+==     GUIs     ==
+==================
+boxconf.txt - The complete guide to configuring your VOCP system using the VOCP boxconf graphical program.
+
+faxes.txt - Sending and receiving faxes is now easy and fully supported. Describes setup and the use of the VOCPhax GUI.
+
+vocpweb.txt - Retrieve messages through the web
+
+xvocp.txt - Retrieve messages locally using this friendly graphical interface.
+
+
+==================
+==Text-to-Speech==
+==================
+
+text-to-speech.txt - Introduces the basic setup for using Text-to-speech with VOCP (with script/command boxes or email)
+
+email-to-speech.txt - A howto for automatically converting email messages to voice mail speech messages.
+
+======================
+== troubleshooting  ==
+======================
+
+modems.txt	- Checking your modem installation and capabilities
+
+Please see the website at http://www.VOCPsystem.com for the latest docs
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+

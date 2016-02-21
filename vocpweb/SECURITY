@@ -1,0 +1,138 @@
+Security.
+
+There are many considerations when running programs which are accessible
+through a web server, especially when the server is publicly accessible
+(through the internet).  It is much more likely that someone will happen upon
+your networked machine than it is that they will hit upon it war dialing
+(successively calling many phone numbers looking for a machine) and it is
+easier to feed it strange input through a tcp socket than through a dtmf phone
+pad.
+
+VOCPweb was written with security in mind since day one and I believe it is
+quite safe to use - the problem is that I am certain that this is what the
+Sendmail, BIND etc. etc. authors also thought ;) 
+
+It is therefore important to consider security issues and act approprietly
+when seting up CGIs, such as VOCPweb.  There are two methods
+you may choose from when doing the VOCPweb setup, each of which has its own
+advantages and disadvantages that address a specific situation:
+
+        - Running as the webserver
+
+        - Running suid (set uid)
+
+Running as the webserver.
+
+Running the program with the uid of the webserver is safest in general and is
+the procedure to follow if your program will be accessible from computers off
+the premises.  It is also the recommended installation method.  The problem
+here is that the message files (which by default are only readable by the
+user) must be made readable to the web server process.
+
+Pros and cons:
+
+        Pros
+        The program runs as the webserver - a user with minimal access/control
+over the system - so any discovered vulnerabilities (in the program or
+perl itself) which would allow the malicious user to act on the host machine
+will have little effect.
+
+        Running as the webserver makes finding security holes in the cgi less
+attractive, so malicious users will focus more on Sendmail, locale
+vulnerabilities or whatever more than they will on VOCPweb anyway.
+
+        Cons
+        All messages must be readable by the webserver process (this does not mean
+	that they must be readable by everyone on the 'net, though).  
+
+	You cannot use the Delete message function when running this way, since the message files
+	are owned by the box owner.
+	
+	The boxes.conf file (which holds box configuration information) must
+also be readable by the webserver.  This means that
+vulerabilities in the program or other means (like allowing a malicious user
+to install a cgi that also runs as the webserver) might allow someone to read
+all the message files - a breach in privacy - or even see the box configuration
+file.
+
+Normally, the messages in the incoming directory (/var/spool/voice/incoming,
+by default) are not within the webserver accessible directories so it is not
+possible to simply do something like
+http://www.yourcomputer.com/some/path/message.rmd to download the messages and
+they are quite safe.  The same holds true for the box configuration file.
+  The only exceptions are
+
+        - cases where malicious users have
+access to the machine (to become the user nobody or set up a cgi that will)
+
+and
+        - cases where users choose to "Embed" sound files in the pages - these
+files must be retrievable through a url and thus are accessible to the world. 
+It is safest to avoid this and simply download the messages but the webserver
+accessible versions of embeded messages are destroyed by VOCPweb when the user
+logs out.
+
+
+Running suid.
+
+In cases where VOCPweb will not be accessible to the outside world (say it is
+inside a firewall on the company LAN) and your top priority is ensuring that
+members of the company never hear an other employee's messages, you may set
+VOCPweb such that it runs setuid.
+
+In this case, the programs starts as the root user, switches to the webserver
+user for normal operation and, when it needs to access a file which is readonly
+by the box owner, it changes it's uid to that of the box owner (as long as it
+is not root) performs the operation and promptly changes it's uid back to that
+of the webserver.
+
+Pros and Cons
+
+        Pros
+        You need not make all the message files readable by one user (the
+webserver) - Users need to be either the box owners or root to read the files
+at all times.
+
+	The webserver process can not read the boxes.conf file, so your box config
+	is safe from other people's cgi programs.
+
+        Cons
+        This program is running suid root!  Although all precautions have been
+taken - and the program swaps its id from root to less threatening uids like
+the webserver's - any vulnerability with the program or even with the perl
+executable (which is written in C) means big bad news for your machine,
+leading to (in the worst case) giving root superuser powers to the malicious
+black hat. This would not be so good.
+
+The program was written as if it were to be used running setuid and every
+precaution has be taken.  This is still not the recommended method for running
+VOCPweb - here are some alternate suggestions:
+
+- Run the program on a host which does not allow users to upload arbitrary
+CGIs - this will keep the messages safe from other webserver processes and
+allow you to avoid running it suid.
+
+- If what you are worried about is some other means of gaining the webserver
+id, plug those holes up - just because the user is 'nobody' doesn't mean
+anybody should be granted that uid :) - and thus avoid running VOCPweb suid.
+
+General notes
+
+Every precaution has been taken to protect the cgi from user input (taint
+checking and such) but for added security file deletions are disabled.  For
+message deletion to function, the cgi must be running setuid (as these are
+owned by the box owner) and you must explicitly enabled file deletions for the
+function to be available to users.  It is recommended that you only allow
+deletes from the telephone interface.
+
+Make sure you set the directory within which the VOCPweb cgi is installed is
+password protected (through the webserver config or with a .htaccess file) and
+change the password(s) once in a while.
+
+The cgi uses cookie based authentication.  These cookies are only valid within
+the current hour, so stolen cookies won't work for long.  However, if the
+login process is sniffed by a third party they will gain the box number and
+associated password.  It is therefore preferable to encrypt the entire session
+to protect the password and the privacy of the transmitted messages through
+SSL.  When this is done, ensure that users use the correct URL to access the
+messages (https://...). 

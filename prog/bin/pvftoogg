@@ -1,0 +1,144 @@
+#!/usr/bin/perl -w
+use strict;
+use VOCP::Util;
+use VOCP::Vars;
+use VOCP::PipeHandle;
+
+### File:         pvftoogg
+### Description: This short script uses pvftowav and the ogg encoder of your 
+###               choice to create an Ogg Vorbis file from the pvf format. The default
+###               setup assumes that you have "oggenc" installed 
+###               on your system. If you want to use a different encoder, modify
+###               the relevant block below.
+###
+### Author:  Pat Deegan (http://www.psychogenic.com)
+###				  Based on Ali Naddaf's pvftomp3 script
+###				  Aug 25 20002. Added some defaults, mucho error checking and 
+###				  security enhancements.
+###				  Oct 30 2002.  Better security, new interface allows output to STDOUT.
+###
+###
+
+
+ 
+# ----------------   Ogg ENCODER SECTION  ---------------------------------------#
+my $encoder = "/usr/bin/oggenc";
+my $encoderOptions = "  -q 2 --genre voicemail ";
+
+my $pvftooldir =  $VOCP::Vars::Defaults{'pvftooldir'} || "/usr/local/bin"; # Use full path to 'pvftoXXX' executables
+
+my $defaultTempDir =  $VOCP::Vars::Defaults{'tempdir'} || '/tmp';
+#----------------   End of MP3 ENCODER SECTION ----------------------------------#
+
+# Probably there is nothing below this line that you need to modify.
+
+
+############ Security environment #############################
+
+$ENV{'ENV'} = '';
+$ENV{'PATH'} = '/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin';
+$ENV{'CDPATH'} = '';
+$ENV{'BASH_ENV'}="";
+
+
+# Check for the encoder's availability
+die "Can't find the selected encoder: '$encoder'" unless (-e $encoder);
+die "Can't run the selected encoder: '$encoder'" unless (-x $encoder);
+
+# Check pvftowav avail
+die "Can't find the '$pvftooldir/pvftowav' program." unless (-x "$pvftooldir/pvftowav");
+
+# Get command line args
+my $pvffile = $ARGV[0] || die "Must pass a PVF file to convert to $0";
+my $soundfile = $ARGV[1];
+
+# Security - refuse to overwrite existing files.
+
+die "Sorry.  I can't overwrite the existing '$soundfile' file" if ($soundfile && -e $soundfile);
+
+
+
+# Check for availability of file to convert
+die "Can't find file '$pvffile'" unless (-e $pvffile);
+die "Can't read file '$pvffile'" unless (-r $pvffile);
+
+
+#### Convert to wav
+my $basefilename = $soundfile;
+$basefilename = "$defaultTempDir/pvftoog$$" unless ($basefilename);
+
+my ($wavFileHandle, $wavFileName) = VOCP::Util::safeTempFile($basefilename);
+
+unless ($wavFileHandle && $wavFileName) 
+{
+	die "Could not open a temp file based on name '$basefilename'";
+}
+
+my $pvfToWavFh = VOCP::PipeHandle->new();
+
+if (! $pvfToWavFh->open("$pvftooldir/pvftowav $pvffile |"))
+{
+	die "Could not open '$pvftooldir/pvftowav $pvffile' for read $!";
+}
+
+$wavFileHandle->autoflush();
+
+while (my $line = $pvfToWavFh->getline())
+{
+	$wavFileHandle->print($line);
+}
+$pvfToWavFh->close();
+
+my ($outputFileHandle, $outputFileName);
+if ($soundfile)
+{
+	$outputFileName = $soundfile;
+} else {
+	($outputFileHandle, $outputFileName) = VOCP::Util::safeTempFile($basefilename);
+	unless ($outputFileHandle && $outputFileName)
+	{
+		unlink $wavFileName;
+		$wavFileHandle->close();
+		die "Could not create a tempfile for ogg output based on '$basefilename'";
+	}
+	
+	unlink $outputFileName;
+	$outputFileHandle->close();
+}
+
+# now change that wav file to mp3 using the encodedr of your choice
+my $enc = "$encoder $encoderOptions $wavFileName -o $outputFileName";
+
+my $ret = system("$enc  2>&1 </dev/null");
+
+unlink $wavFileName;
+$wavFileHandle->close();
+
+# Done, if output soundfile requested
+if ($soundfile)
+{
+	
+	$outputFileHandle->close();
+	exit (0) ;
+}
+
+
+# Else, print to STDOUT and clean up.
+my $resultFh = FileHandle->new();
+
+if (! $resultFh->open("<$outputFileName"))
+{
+	die "Seems we did not manage to write $outputFileName (syscall returned '$ret')";
+}
+
+my $data = join('', $resultFh->getlines());
+
+$resultFh->close();
+
+print $data;
+
+unlink $outputFileName;
+$outputFileHandle->close();
+
+exit (0);
+

@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+ <VOCPBoxConfig>
+  <boxList>
+   <box number="100">
+    <password>
+     wWkZwr4PqkvAE
+    </password>
+   </box>
+   <box number="200">
+    <password>
+     200
+    </password>
+   </box>
+   <box number="600">
+    <password>
+     600
+    </password>
+   </box>
+   <box number="666">
+    <password>
+     666
+    </password>
+   </box>
+  </boxList>
+ </VOCPBoxConfig>
+

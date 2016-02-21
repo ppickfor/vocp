@@ -1,0 +1,263 @@
+###################################################
+###                                             ###
+###  VOCP Command Shells                        ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+Whether you're a professional sysadmin and want to keep an eye on your server farm or just want the ability to restart your home internet connection, if you can run a program on your computer then you can do it through the phone using the VOCP command shells.  In addition, the programs you run through the command shell can provide you with a wealth of information by playing sound files or even converting text to speech.
+
+TOC
+
+- Introducing command shells
+- Creating command shells
+	- structure
+	- input
+	  - none
+	  - raw
+	  - text
+	- run
+	- return
+	  - exit
+	  - output
+	  - file
+	  - tts
+	  - sendfax
+- Using command shells
+- Conclusion
+
+
+
+
+###################################################
+###                Introduction                 ###
+###################################################
+
+VOCP command shells allow you to have complete control of your computer just by logging in through a phone line.  They give the VOCP administrator fine grained control over exactly which commands users are able to run and under what privileges.
+
+The most difficult part with command shells is creating them (described below).  Once that is done, you can have as much control and functionality as you want - all through a phone call.  The possibilities are basically unbounded - if you or someone you know can run it, code it or hack up a script to do it, you will be able to use it through the phone.
+
+
+###################################################
+###           Creating command shells           ###
+###################################################
+
+The easiest way to create a command shell box is to use the VOCP boxconf GUI (see the boxconf.txt file for details).
+
+When you create a command shell, you must set a number, an owner and a password for the box.  Choose the box owner wisely, as commands executed within the command shell will be run as the owner of the box.  If the box does not *need* to be owned by root, set the owner to another - less privileged - user.
+
+
+You may have any number of different command shells, each with it's own password, owner and selection of executable programs.
+
+=======================
+===    structure    ===
+=======================
+
+Every command shell box has a different set of available selections.  When the logged in user enters a selection using the DTMF keys, VOCP may prompt for user input.  VOCP will then run the program associated with the selection and return some type of information to the user.
+
+=======================
+===      input      ===
+=======================
+
+Command shell can optionally accept user input before running the program associated with a given selection.  The manner in which input is interpreted depends on the type of input specified in the config.  Valid input type are 'none', 'raw' and 'text'.
+
+
+==> none <==
+
+If the input is set to none, no input will be required from the user - the program will execute immediately.
+
+
+==> raw <==
+
+When input is set to raw, the user will be required to enter some DTMF keys.  The user's input will be passed as-is to the program to run.  Thus if the selection is configured like so:
+
+sel   input     run        return
+200   raw       myprog.sh  exit
+
+then, upon entering selection 200, the caller will be prompted for input.  Assuming our caller enters '12345#', VOCP will execute:
+
+/var/spool/voice/commands/myprog.sh 12345
+
+passing along the raw DTMF digits as the last (and potentially only) argument to myprog.sh.  After myprog.sh has finished, VOCP will read the exit status to the caller (see the 'return' settings below).
+
+
+==> text <==
+
+The last available input type is 'text'.  This involves a more convoluted interface for the caller but is more natural and flexible than trying to remember a bunch of different numerical codes.
+
+When a selection's input is set to text, for example
+
+
+sel   input     run         return
+300   text      readtxt.sh  exit
+
+the caller's DTMF input is first translated to ascii text, then passed along as the last argument to the program, as described for 'raw' above.
+
+To enter a letter the user first selects the dialpad button which displays the given letter, say '5' for the letter 'j', and then the position of the letter on the button she wishes to add to the text. Thus the combination '51' is 'j', '52' is 'k' and '53' is 'l'. To write 'hello' the user would enter (check your nearest keypad):
+
+ h  e  l  l  o
+
+42 32 53 53 63
+
+
+So if a caller is in this command shell and selects 300, she will be prompted to enter some input.  Entering '4232535363#' will run the program like so:
+
+/var/spool/voice/commands/readtxt.sh hello
+
+and again read out the exit code to the caller.
+
+The above technique covers pretty much every letter but there are a few caveats and exceptions, so follow the KISS principle here - keep it simple... - because you don't want to write your thesis on a phonepad using this technique.
+
+To enter actual digits, follow the digits with '0' (instead of the usual '1', '2' or '3'). So '50' is translated to '5'. 
+
+
+Exceptions:
+Ma Bell decided that the 1 and 0 keys were too important to contain letters, so 'q' and 'z' are missing... we shall, of course devise a method in order to save the left-out letters:
+
+A 1 and a 0 can form the letter q, so the combo is '01' and cursive z looks like 3 (use '03').
+
+Here is the list of exceptions and some extras with their (admittedly shabby) mnemonics:
+
+LTR     COMBO   MNEM
+
+q       01      With 1 and 0 you can make q
+
+z       03      Cursive z looks like 3
+
+-       14      - is like 1 turned 90 degrees
+
+@       24      @ is another kind of 'a' (the '2' key)
+
+.       54      There is often a little . on 5 to let you
+                know where the center of the pad is (in the 
+                dark, say).
+
+
+
+
+=======================
+===       run       ===
+=======================
+
+
+This parameter sets the actual program to run for this selection. It can contain command line options and such. Note that this program must be placed beneath the commanddir (/var/spool/voice/commands). The sysadmin may use symlinks instead of copying everything into the commands directory.
+
+Valid run entries include any command available within the commanddir (including symlinks) along with arguments.  For instance:
+
+ip.pl
+ip.pl ppp0
+mysubdir/mycommand.sh
+
+are all valid 'run' entries.  If some type of input is specified, it will be appended after the run param when executing, ie
+
+ip.pl ppp0 MYINPUT
+or
+mysubdir/mycommand.sh MYINPUT
+
+substituting MYINPUT with caller input of course.
+
+
+=======================
+===      return     ===
+=======================
+
+The return parameter configures exactly how VOCP will convey results to the caller.  After the program is run, VOCP will output something to return some status info to the caller.  Just how and what is output depends on the program that was run and the type specified for 'return'.  Valid return types are:
+
+- exit
+- output
+- file
+- tts
+- sendfax
+
+Each of these expects a different response from the program that the selection runs.
+
+==> exit <==
+
+When 'return' is set to 'exit', the exit code of the program that was run will be read to the caller.  Whether it's a C, Perl, shell or other type of executable, you can normally convey some information by exiting the program with a particular code.  It is conventional to exit with a status of 0 when "all is well" and to use a value between 1 and 255 to convey some type of error.  Assuming the return is set to 'exit', the program is run and terminates like this:
+
+exit(0);
+
+then vocp will say "zero" to the caller.  For exit(1);, it will say "one" and so on.  This return mode is least informative but most simple to implement.
+
+
+
+==> output <==
+
+Using the 'output' return mode can provide more complex information (such as reading the IP address of an interface, as demonstrated in ip.pl).  The program for the selection is run and is expected to output 1 or more lines (on standard output) consisting of digits and optionally periods.  So a program that outputs :
+
+192.168.1.1
+
+will cause VOCP to say "one ninety two dot one sixty eight dot one dot one".
+
+==> file <==
+
+The 'file' return type allows you to specify one or more arbitrary sound files (in the appropriate RMD format for your modem) to play for the caller.  The program is expected to print 1 or more lines through standard out, consisting of the full path to a single RMD file.  For instance, a program that outputs:
+
+/home/joeblo/sounds/hello.rmd
+/home/joeblo/sounds/temperature.rmd
+/var/spool/voice/messages/num/80.rmd
+/var/spool/voice/messages/num/5.rmd
+/home/joeblo/sounds/degrees.rmd
+
+would presumably play something like "hello my friend.  The current temperature is. eighty. five. degrees"
+
+
+==> tts <==
+
+Your programs can output arbitrary text that will be converted to speech and played.  This option requires that you have installed the festival speech synthesis engine (http://www.cstr.ed.ac.uk/projects/festival/) and edited /usr/local/vocp/bin/txttopvf to configure it appropriately.
+
+Once everything is set up, you need only set the return type to 'tts' for the selection and have your program output plain text on standard out.  This text will be converted all the way to the appropriate RMD format for your modem and played for the caller.
+
+
+==> sendfax <==
+
+The last available setting for 'return' is 'sendfax'.  If a selection's return is set to sendfax and the program to run output's the full path to a g3 file (see the faxes.txt file), then VOCP will switch to fax mode, terminating the voice call, and hand control over to mgetty.  The specified fax will be sent to the caller, who needs only hit the "receive fax" button on the machine at his end.
+
+
+
+
+###################################################
+###            Using command shells             ###
+###################################################
+
+
+Once a command shell is configured, you can call into your machine and log in.  Logging into command shells is just like logging into a voice mail box:
+
+- call the host
+- enter the login code (normally *999#)
+- enter the command shell box number (eg 600)
+- enter the box's password
+
+After logging in, command shells are purposefully sparse in the help they will provide you - so keep a list of the available commands in your palm pilot, in an notebook or tattooed somewhere special.
+
+You will be asked to enter a selection.  Available selection are configured by the VOCP admin.  Each selection executes a single command on the host, optionally requesting DTMF input (which is either interpreted as digits or text and passed along as the last argument to the program to run).  After the requested command is run, VOCP will provide some output to let you know how things went.  Output can range from a simple numeric readout to full Text-To-Speech output (using the festival TTS engine), see above for details.
+
+
+
+###################################################
+###                 Conclusion                  ###
+###################################################
+
+That pretty much covers how to setup and use command shells.  What is not covered is everything you can do with them.  If you have a great/cool idea using the command shell and have either set it up or are looking for help in doing so, please drop me a line.  I'd like to hear about it and possibly include it with the VOCP distribution.
+
+Things I am specifically interested in are apps that provide really useful info or help you control the outside world, possibly allowing VOCP to inter-operate with packages like MisterHouse.
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+

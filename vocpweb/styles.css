@@ -1,0 +1,15 @@
+A:link {text-decoration: underline; color:#CCCC66; font-weight: bold}
+A:visited {text-decoration: underline; color:#185070; font-weight: bold;}
+A:active {color: #CCCC66; font-weight: bold}
+A:hover {text-decoration: underline; color:#0000ff}
+BODY { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-weight: normal; color: #cccc66; background-color: #003047;}
+P { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-weight: normal; color: #cccc66}
+OL { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; font-weight: normal; color: #cccc66}
+UL { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; font-weight: normal; color: #cccc66}
+TD { font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-weight: normal; color: #cccc66}
+H2 { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 16pt; color: #CCCC66}
+H3 { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 14pt; color: #CCCC66}
+B { font-weight: bold;}
+I { font-weight: italic;}
+TT { font-family: Courier, Arial, sans-serif; font-size: 12pt; color: #cccc66}
+PRE { font-family: Courier, Arial, sans-serif; font-size: 12pt; color: #cccc66}

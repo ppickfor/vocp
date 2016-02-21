@@ -1,0 +1,1 @@
+The /usr/local/vocp/run directory is used by VOCP to store certain messages, lockfiles and such and should be left untouched.

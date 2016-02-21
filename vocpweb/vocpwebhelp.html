@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>VOCPweb Help</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel=stylesheet href="styles.css" type="text/css">
+</head>
+
+<body bgcolor="#ffffff"><table BORDER="0" CELLPADDING="15" CELLSPACING="0" width="90%">
+<tr><td>
+<H1>VOCPweb</H1>
+<p>
+VOCPweb allows you to log on to the <a href="http://VOCPsystem.com">VOCP</a> voice 
+messaging system and retrieve messages
+through a browser.  After logging in to your box you are presented with 
+an answering machine type interface.  Images within the display
+indicate the current state of the machine while the buttons select various courses
+of action.
+</P>
+
+<P>Press the play button to download the current message.  If the
+browser disposes of a plugin to play the sound file format (wav or au files), such as 
+<a href="http://fredrik.hubbe.net/plugger.html">Plugger</a> and 
+<a href="http://smurfland.cit.buffalo.edu/xanim/home.html">Xanim</a> (for linux - see 
+<a href="http://home.netscape.com/plugins/">here</a> for pluggins for Netscape for other platforms)
+you may click the transfer button to toggle the transfer mode from "download" to "embed".
+  When embed is selected, the message will
+be embeded in the page such that you will hear it immediately.
+</P>
+The controls are:
+<UL>
+<P>Bottom row, left to right:<BR>
+<B>FastBack</B>.       Goes back 5 messages (by default).  Loops around if current
+message - 5 is smaller than 1.
+</P>
+
+<P><B>Back</B>.   Move the current message number back by 1.  If the current message is
+number 1, the current message will loop to the last message.
+</P>
+
+<P><B>Stop</B>.   Usefull to stop the play of an embeded (see below) message.
+</P>
+
+<P><B>Play</B>.   The play button lets the user hear the voicemail message and reacts
+in manner dependant on the currently selected transfer mode.  While in download mode 
+(identified by an icon of a disk in the display) the user will be asked to save the message
+on the local computer and will download it.  If the current transfer mode is instead "embed" 
+(represented by a speaker icon in the display area), the sound file will be embeded in the 
+HTML.  If the browser has a plugin which supports playing the selected file format (wav or au),
+the message will be heard immediatly.
+</P>
+
+<P><B>Delete</B>. Deletes the current message.  This option must be explicitly enabled
+by the system administrator to function, it is disabled by default for security reasons.
+</P>
+
+<P><B>Forward</B>.       Advances the current messages by 1.  If the current message is
+the last message, the current message will loop to message number 1.
+</P>
+<P><B>FastForward</B>.    Goes forward 5 messages (by default).  Loops around if current
+message + 5 is greater than the last message.
+</P>
+<P>Right hand side of the display, from top to bottom:<BR>
+<B>Dl/Embed</B>	 Clicking on transfer type button toggles the image and the transfer
+type.  Messages will be sent to the browser such that the user may
+save the file on the local disk when the display shows the disk icon (download mode).
+  While in download mode the button shows the speaker icon and clicking
+on it switches the user to embeded message mode - the messages will be
+embeded in the HTML and, if the browser has the appropriate plugin,
+messages will be heard through the browser by clicking on play.  The current
+transfer type is always shown in the display.<BR>
+Note: To use embed mode, sound files must be accessible to clients on remote machines - this
+means that if a person knows the name of a message file he may download and hear it and may
+compromise message confidentiality.  It is safest to use download mode (which does not need to 
+create these webserver readable files) but explicitly logging out
+of VOCPweb will delete the embeded files so be sure to log out when you are using embed mode and
+you can be certain that any temporary files will be removed.
+</P>
+
+<P><B>Wav/Au</B> The message sound file format, wav by default.  Clicking on wav
+toggles the sound file format.  While the button shows "au",
+clicking on it toggles the user to au file format.  The current format is
+shown in the display.
+</P>
+
+<P><B>Details</B>	Shows some information about the current message.
+</P>
+<P><B>List</B>  	 Shows a list of all messages, their details and a link to jump
+directly to that message.
+</P>
+<P><B>Logout</B> Logs the user out of the system (and delete and webserver readable
+cached embeded message files).
+</P>
+</TD></TR>
+</TABLE>
+</BODY>
+</HTML>
+

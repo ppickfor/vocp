@@ -1,0 +1,91 @@
+###################################################
+###                                             ###
+###  VOCP and Text To Speech                    ###
+###                                             ###
+###  (C) 2002 Patrick Deegan, Psychogenic.com   ###
+###  All rights reserved.                       ###
+###                                             ###
+###################################################
+
+
+VOCP, in combination with the festival speech synthesis engine can convert arbitrary text and emails to voice mail messages.
+
+For details on retrieving and converting emails to voice mail, see the email-to-speech.txt file.
+
+
+- Requirements
+- Setup
+- Use
+
+
+###################################################
+###               Requirements                  ###
+###################################################
+
+To use the email to voicemail functionality, you need:
+
+- the festival text to speech engine (http://www.cstr.ed.ac.uk/projects/festival/)
+
+
+###################################################
+###                   Setup                     ###
+###################################################
+
+
+Get and install Festival as described at http://www.cstr.ed.ac.uk/projects/festival/
+
+Take note of where you install festival's text2wave program.
+
+As root, edit /usr/local/vocp/bin/txttopvf and set the $txt2wavProg variable to the full path to the text2wave executable.  Verify that $wav2pvfProg contains the correct path to the wavtopvf mgetty program.
+
+
+Now you can test you setup.  Do:
+$ cat > foo.txt
+From: niceguy@vocpsystem.com
+Subject: hi there
+
+
+Hello you are my nice friend.
+^D
+
+$ /usr/local/vocp/bin/txttopvf `pwd`/foo.txt `pwd`/foo.pvf
+
+$ ls -l foo.*
+-rw-------    1 user   user     444744 Dec  5 13:48 foo.pvf
+-rw-rw-r--    1 user   user         79 Dec  5 13:47 foo.txt
+
+Hooray.  You can now play the pvf file, say by converting it to wav (pvftowav) or whatever.
+
+
+
+###################################################
+###                    Use                      ###
+###################################################
+
+
+Now that txttopvf is set up and working, you can use text-to-speech with VOCP in a few ways.  
+
+You can choose to have emails that are delivered to certain addresses converted to speech and dropped into your voice mail box.  To do so, please take a look at the email-to-speech.txt file.
+
+You can also setup command shell selections or script boxes that run a program which outputs some text.  If the return value for these selections/boxes is set to 'tts', VOCP will convert the text on the fly and read the output to you over the phone.  For more information on this, see the box-types.txt and command-shells.txt files.
+
+
+
+###################################################
+###                   Author                    ###
+###################################################
+
+This document was written by Pat Deegan, Dec 2002
+and is distributed with the VOCP voice messaging system
+http://www.VOCPsystem.com
+
+(C) 2002 Patrick Deegan - All rights reserved.
+
+    http://www.psychogenic.com
+
+
+
+EOF
+
+
+
