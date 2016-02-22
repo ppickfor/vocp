@@ -292,8 +292,8 @@ Records input from user to device to file TOFILE.  Returns true on success.
 sub record {
 	my $self = shift;
 	my $tofile = shift;
-	
-	my $timeout = $VOCP::Vars::Defaults{'maxMessageTime'} || 45;
+	my $type = shift; # to match interface with Local.pm
+	my $timeout = shift || 45;
 	
 	if ($timeout !~ /^\d+$/ || $timeout < 2)
 	{

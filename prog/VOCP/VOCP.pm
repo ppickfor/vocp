@@ -2371,7 +2371,9 @@ sub record_message {
 	$tmpFileHandle->close();
 	#my $message = VOCP::Util::full_path($self->{'boxes'}->{$box}->createNewMessageName(), $self->{'inboxdir'});
 	
-	$self->{'voicedevice'}->record($tmpFileName);
+	#add type and timeout parameters (timeout from maxMessageTime)
+	my $timeout = $self->{'maxMessageTime'} || 45;
+	$self->{'voicedevice'}->record($tmpFileName, undef, $timeout);
 	
 	unless (-r $tmpFileName)
 	{
